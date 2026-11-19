@@ -1,0 +1,31 @@
+/* ---------- product and pack pages ---------- */
+
+/* buy box */
+
+.m-inputpill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 6px 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: #fff;
+  color: var(--fg-muted);
+}
+.m-inputpill:focus-within {
+  box-shadow: var(--ring);
+  border-color: var(--cocoa-500);
+}
+.m-inputpill input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  font-size: 16px;
+  color: var(--fg);
+}
+
+/* story, specs, inside, faq */
+

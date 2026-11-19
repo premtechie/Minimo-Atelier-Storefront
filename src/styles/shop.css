@@ -1,0 +1,169 @@
+/* ---------- collection (matches the design's mm-col) ---------- */
+.m-wrap.m-col {
+  max-width: var(--wrap);
+}
+.m-col {
+  padding-bottom: 64px;
+}
+.m-col-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 0 20px;
+}
+.m-col-head > div {
+  min-width: 0;
+}
+.m-col-head .m-eyebrow {
+  margin: 0;
+}
+.m-col-h1 {
+  margin: 8px 0 0;
+  font: 400 clamp(30px, 4.4vw, 48px) / 1.05 var(--ff-display);
+  color: var(--brand);
+  letter-spacing: -0.015em;
+}
+.m-col-desc {
+  margin: 10px 0 0;
+  max-width: 60ch;
+  font-family: var(--ff-badge);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--fg-soft);
+}
+.m-col-chips {
+  display: flex;
+  gap: 8px;
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 0 var(--gutter) 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.m-col-chips > * {
+  flex-shrink: 0;
+}
+.m-col-chips .m-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  min-height: 0;
+  padding: 0 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 13px;
+  color: var(--fg-soft);
+  white-space: nowrap;
+  transition: background var(--t2), color var(--t2), border-color var(--t2);
+}
+.m-col-chips .m-chip:hover {
+  border-color: var(--cocoa-300);
+  color: var(--brand);
+}
+.m-col-chips .m-chip.is-on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.m-grid.m-grid--3 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (min-width: 768px) {
+  .m-col {
+    padding-bottom: 88px;
+  }
+  .m-col-head {
+    padding: 48px 0 28px;
+  }
+  .m-col-desc {
+    font-size: 15px;
+  }
+  .m-col-chips {
+    padding-bottom: 28px;
+  }
+  .m-grid.m-grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+@media (min-width: 1024px) {
+  .m-grid.m-grid--3 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.m-searchbtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  width: 240px;
+  height: 40px;
+  padding: 0 10px 0 14px;
+  border: 1px solid var(--cocoa-100);
+  border-radius: var(--r-pill);
+  background: var(--brand-tint);
+  color: var(--fg-muted);
+  font: 400 14px/1 var(--ff-ui);
+  text-align: left;
+  cursor: text;
+}
+.m-searchbtn svg {
+  color: var(--cocoa-500);
+  flex-shrink: 0;
+}
+.m-searchbtn span {
+  flex: 1 1 0%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.m-searchbtn kbd {
+  font: 500 11px/1 var(--ff-ui);
+  color: var(--fg-muted);
+  padding: 4px 7px;
+  border: 1px solid var(--cocoa-200);
+  border-radius: 6px;
+  background: #fff;
+}
+@media (hover: none) {
+  .m-searchbtn kbd {
+    display: none;
+  }
+}
+@media (max-width: 767px) {
+  .m-searchbtn {
+    display: none;
+  }
+}
+
+.m-col-count {
+  font-size: 13px;
+  color: var(--fg-soft);
+  margin-bottom: 14px;
+}
+.m-col-more {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: 32px;
+  font-size: 13px;
+  color: var(--fg-soft);
+}
+
+/* ---------- for her / for him ---------- */
+
+/* ---------- search ---------- */
+.m-search {
+  padding-top: 24px;
+  padding-bottom: 56px;
+}
+.m-search-box {
+  margin: 14px 0 16px;
+  max-width: 640px;
+}
+.m-search-ideas {
+  margin-bottom: 20px;
+}

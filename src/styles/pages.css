@@ -1,0 +1,34 @@
+/* ---------- visit our store ---------- */
+
+/* ---------- bulk orders ---------- */
+
+/* ---------- cart and checkout ---------- */
+
+.m-cart-wait {
+  min-height: 40vh;
+}
+
+.m-cart-warn {
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--amber-tint);
+  color: var(--amber);
+  font-size: 14px;
+}
+
+.m-btn:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* keep the WhatsApp button clear of a bottom bar */
+body:has(.m-cart-bar) .m-wafab,
+body:has(.m-floatbuy) .m-wafab {
+  bottom: calc(84px + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  body:has(.m-cart-bar) .m-wafab,
+  body:has(.m-floatbuy) .m-wafab {
+    bottom: 24px;
+  }
+}

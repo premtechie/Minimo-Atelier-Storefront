@@ -1,0 +1,312 @@
+/*
+ * Motion, matched to the approved prototype: entrances, ambient loops,
+ * hover and press feedback. Everything here switches off under
+ * prefers-reduced-motion (see the end of this file and base.css).
+ */
+:root {
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+}
+@property --m-beam-a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@property --m-ring-a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+@keyframes m-view { from { opacity: 0; } }
+@keyframes m-drop { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes m-up { from { opacity: 0; transform: translateY(10px); } }
+@keyframes m-pop { 45% { transform: scale(1.18); } }
+@keyframes m-drift { to { transform: scale(1.05); } }
+@keyframes m-band-a { from { transform: translateZ(0) scale(1) rotate(0); } to { transform: translate3d(6vmin, 4vmin, 0) scale(1.12) rotate(8deg); } }
+@keyframes m-band-b { from { transform: translateZ(0) scale(1.08) rotate(0); } to { transform: translate3d(-7vmin, -5vmin, 0) scale(1) rotate(-6deg); } }
+@keyframes m-band-c { from { transform: translate3d(-4vmin, 0, 0) scale(1); } to { transform: translate3d(4vmin, -3vmin, 0) scale(1.1); } }
+@keyframes m-ping { 0% { transform: scale(1); opacity: 0.6; } 80%, 100% { transform: scale(2.8); opacity: 0; } }
+@keyframes m-shine { 0% { transform: translateX(0); } 45%, 100% { transform: translateX(350%); } }
+@keyframes m-strip-shine { 0% { transform: translateX(0); } 45%, 100% { transform: translateX(350%); } }
+@keyframes m-beam { to { --m-beam-a: 360deg; } }
+@keyframes m-ring { to { --m-ring-a: 360deg; } }
+@keyframes m-vapour-in { 0% { opacity: 0; filter: blur(7px); transform: translateY(-6px) scale(1.06); } 60% { opacity: 1; } 100% { opacity: 1; filter: blur(0); transform: none; } }
+@keyframes m-vapour-out { to { opacity: 0; filter: blur(9px); transform: translateY(-12px) scale(1.04); } }
+@keyframes m-fadein { from { opacity: 0; } }
+@keyframes m-cue { 50% { translate: 0 6px; } }
+@keyframes m-cap-rise { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } }
+
+/* ---------- every page ---------- */
+main {
+  animation: m-view 180ms var(--ease);
+}
+.m-dot {
+  animation: m-pop var(--t3) var(--ease);
+}
+.m-strip {
+  position: relative;
+  overflow: hidden;
+}
+.m-strip::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  width: 100%;
+  background: linear-gradient(100deg, transparent 36%, rgba(255, 255, 255, 0.08) 42%, rgba(255, 255, 255, 0.38) 50%, rgba(255, 255, 255, 0.08) 58%, transparent 64%);
+  animation: m-strip-shine 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.m-strip > * {
+  position: relative;
+}
+.m-strip-dot {
+  position: relative;
+  flex: none;
+}
+.m-strip-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: m-ping 2s var(--ease) infinite;
+}
+.m-iconbtn--card {
+  transition: transform var(--t2) var(--ease), box-shadow var(--t2) var(--ease), background var(--t2) var(--ease);
+}
+.m-iconbtn--card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--sh-sm);
+}
+.m-hin-nav a {
+  transition: color var(--t2), border-color var(--t2);
+}
+.m-viewall {
+  transition: color var(--t2) var(--ease), border-color var(--t2) var(--ease);
+}
+.m-chip:active,
+.m-pill:active {
+  transform: scale(0.96);
+}
+.m-qty button {
+  transition: background var(--t1) var(--ease);
+}
+.m-qty button:active:not(:disabled) {
+  background: var(--brand-tint);
+}
+.m-wafab:active {
+  transform: scale(0.94);
+}
+.m-card-heart {
+  transition: transform var(--t1) var(--ease), color var(--t2);
+}
+.m-btn--primary:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+.m-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.m-inputpill {
+  transition: border-color var(--t1) var(--ease), box-shadow var(--t1) var(--ease);
+}
+.m-inputpill:focus-within {
+  border-color: var(--cocoa-500);
+  box-shadow: var(--ring);
+}
+
+/* Search button on collection pages: a slow light runs round its border. */
+.m-searchbtn {
+  position: relative;
+  isolation: isolate;
+  transition: border-color var(--t2) var(--ease), box-shadow var(--t2) var(--ease);
+}
+.m-searchbtn::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--m-ring-a), transparent 0deg, transparent 200deg, var(--cocoa-200) 245deg, var(--cocoa-500) 280deg, var(--brand) 300deg, var(--cocoa-500) 320deg, var(--cocoa-200) 340deg, transparent 1turn);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: m-ring 5s linear infinite;
+  pointer-events: none;
+}
+.m-searchbtn:hover {
+  border-color: var(--cocoa-200);
+}
+
+/* ---------- home hero ---------- */
+.m-home-bg {
+  overflow: hidden;
+}
+.m-band {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+.m-band--1 {
+  bottom: -22vmin;
+  left: -14vmin;
+  width: 76vmin;
+  height: 50vmin;
+  opacity: 0.45;
+  background: radial-gradient(circle at 45% 45%, var(--cocoa-200), transparent 68%);
+  animation: m-band-a 26s var(--ease-soft) infinite alternate;
+}
+.m-band--2 {
+  bottom: -14vmin;
+  right: -22vmin;
+  width: 78vmin;
+  height: 58vmin;
+  opacity: 0.55;
+  background: radial-gradient(circle at 50% 50%, var(--cocoa-300), transparent 70%);
+  animation: m-band-b 32s var(--ease-soft) infinite alternate;
+}
+.m-band--3 {
+  bottom: -30vmin;
+  left: 50%;
+  margin-left: -55vmin;
+  width: 110vmin;
+  height: 48vmin;
+  opacity: 0.5;
+  background: radial-gradient(ellipse at 50% 40%, var(--cocoa-200), transparent 72%);
+  animation: m-band-c 24s var(--ease-soft) infinite alternate;
+}
+.m-hhome {
+  animation: m-drop var(--t4) var(--ease) both;
+}
+.m-hero-title {
+  animation: m-up var(--t4) var(--ease) 80ms both;
+}
+.m-facts {
+  animation: m-up var(--t4) var(--ease) 0.3s both;
+}
+.m-hero-stage {
+  animation: m-up var(--t4) var(--ease) 0.18s both;
+}
+.m-hero-buy {
+  animation: m-up var(--t3) var(--ease) 0.26s both;
+}
+.m-hero-foot {
+  animation: m-up var(--t4) var(--ease) 0.36s both;
+}
+.m-trust--in {
+  animation: m-up var(--t4) var(--ease) 0.44s both;
+}
+.m-hero-drift {
+  width: 100%;
+  height: 100%;
+}
+.m-hero-card.is-current .m-hero-drift {
+  animation: m-drift 18s var(--ease-soft) infinite alternate;
+}
+.m-hero-card.is-current {
+  transition: transform var(--t3) var(--ease), opacity var(--t3) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .m-hero-card:not(.is-current):hover {
+    --lift: -10px;
+    --hover-scale: 1.06;
+    box-shadow: var(--sh-lg), 0 30px 60px rgba(43, 29, 22, 0.1);
+  }
+}
+.m-hero-pill--solid {
+  position: relative;
+  overflow: hidden;
+}
+.m-hero-pill--solid > * {
+  position: relative;
+}
+.m-hero-pill--solid::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  animation: m-shine 5s ease-in-out infinite;
+}
+.m-hero-pill--shop {
+  position: relative;
+  isolation: isolate;
+  transition: border-color var(--t2) var(--ease), box-shadow var(--t2) var(--ease);
+}
+.m-hero-pill--shop svg {
+  transition: transform var(--t2) var(--ease);
+}
+.m-hero-pill--shop:hover {
+  box-shadow: 0 2px 8px rgba(107, 68, 51, 0.12);
+}
+.m-hero-pill--shop:hover svg {
+  transform: translateX(2px);
+}
+.m-beam {
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  pointer-events: none;
+  background: conic-gradient(from var(--m-beam-a), transparent 0deg 250deg, rgba(201, 147, 124, 0) 260deg, #d9a58d 300deg, #6b4433 330deg, rgba(255, 255, 255, 0.95) 342deg, transparent 356deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: m-beam 3.2s linear infinite;
+}
+.m-hero-pill--shop:hover .m-beam {
+  animation-duration: 1.6s;
+}
+
+/* ---------- scrolly ---------- */
+.m-sc-copy.is-out {
+  pointer-events: none;
+  animation: m-vapour-out 0.38s var(--ease-in) both;
+}
+.m-vapour {
+  display: inline-block;
+  animation: m-vapour-in 0.62s var(--ease) both;
+}
+.m-sc-copy.is-in .m-sc-desc {
+  animation: m-vapour-in 0.7s var(--ease) 0.16s both;
+}
+.m-sc-num {
+  animation: m-vapour-in 0.52s var(--ease) both;
+}
+.m-sc.is-swap .m-switch-thumb {
+  transition: none;
+  animation: m-sc-thumb var(--t4) var(--ease) both;
+}
+.m-sc.is-hamper.is-swap .m-switch-thumb {
+  --from: 0;
+}
+.m-sc:not(.is-hamper).is-swap .m-switch-thumb {
+  --from: 100%;
+}
+@keyframes m-sc-thumb {
+  from {
+    translate: var(--from, 0) 0;
+  }
+}
+.m-sc.is-swap .m-sc-frame {
+  animation: m-vapour-in 0.6s var(--ease) both;
+}
+
+/* ---------- product ---------- */
+
+/* ---------- visit our store ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .m-band,
+  .m-beam,
+  .m-strip::before,
+  .m-strip-dot::after,
+  .m-hero-pill--solid::before,
+  .m-searchbtn::before,
+  .m-hero-card.is-current .m-hero-drift {
+    animation: none !important;
+  }
+  .m-strip::before,
+  .m-hero-pill--solid::before {
+    display: none;
+  }
+}
