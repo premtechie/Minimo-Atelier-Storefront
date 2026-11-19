@@ -64,19 +64,19 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
   const [giftNote, setGiftNote] = useState("");
   const blocked = !live.length || short.length > 0;
 
-  // The phone bar stays on screen the whole way down the cart, so Checkout is
-  // always one tap away; it steps aside only for the checkout sheet itself.
-  // On a desktop it shows only once the summary's own Checkout has scrolled away.
+  // The bottom Checkout bar is there whenever the summary's own Checkout
+  // button is off screen (above it, below it, or over the footer), and steps
+  // aside while that button is in view, so there is never two at once.
   const cta = useRef<HTMLButtonElement>(null);
   const [ctaSeen, setCtaSeen] = useState(true);
   useEffect(() => {
     const el = cta.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => setCtaSeen(e.isIntersecting), { rootMargin: "-110px 0px 0px 0px" });
+    const io = new IntersectionObserver(([e]) => setCtaSeen(e.isIntersecting), { rootMargin: "-110px 0px -90px 0px" });
     io.observe(el);
     return () => io.disconnect();
   }, [ready, cart.length]);
-  const barHidden = sheet;
+  const barHidden = sheet || ctaSeen;
 
   const hrefFor = (l: CartLine) => {
     if (l.kind === "build") return "/build";
@@ -243,7 +243,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
               </aside>
             </div>
           </div>
-          <div className="d-cart-bar" data-hidden={barHidden ? "" : undefined} data-cta-seen={ctaSeen ? "" : undefined}>
+          <div className="d-cart-bar" data-hidden={barHidden ? "" : undefined}>
             <div className="d-cart-bar-total">
               <span>Total</span>
               <strong>{inr(t.total)}</strong>

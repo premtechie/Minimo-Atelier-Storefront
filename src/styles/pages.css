@@ -37,8 +37,7 @@
     bottom: calc(92px + env(safe-area-inset-bottom));
   }
 }
-/* Desktop: once the summary's Checkout scrolls away, a small Checkout card
-   floats in at the bottom of the summary column, so it is never out of reach. */
+/* Desktop: the bar is a small card at the bottom of the summary column. */
 @media (min-width: 900px) {
   body .d-cart-bar {
     display: flex;
@@ -51,14 +50,7 @@
     border-radius: 20px;
     box-shadow: 0 12px 32px rgba(107, 68, 51, 0.14);
   }
-  body .d-cart-bar[data-cta-seen] {
-    transform: translateY(16px);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: transform var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out), visibility 0s linear var(--dur-2);
-  }
-  body:has(.d-cart-bar:not([data-cta-seen]):not([data-hidden])) .m-wafab {
+  body:has(.d-cart-bar:not([data-hidden])) .m-wafab {
     bottom: 104px;
   }
 }
