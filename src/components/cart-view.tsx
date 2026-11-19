@@ -64,23 +64,19 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
   const [giftNote, setGiftNote] = useState("");
   const blocked = !live.length || short.length > 0;
 
-  // The phone bar hides while the summary's own Checkout or the footer is on screen.
+  // The phone bar stays on screen the whole way down the cart, so Checkout is
+  // always one tap away; it steps aside only for the checkout sheet itself.
+  // On a desktop it shows only once the summary's own Checkout has scrolled away.
   const cta = useRef<HTMLButtonElement>(null);
-  const [barHidden, setBarHidden] = useState(false);
+  const [ctaSeen, setCtaSeen] = useState(true);
   useEffect(() => {
-    const els = [cta.current, document.querySelector("footer")].filter(Boolean) as Element[];
-    if (!els.length) return;
-    const seen = new Set<Element>();
-    const io = new IntersectionObserver(
-      (es) => {
-        es.forEach((e) => (e.isIntersecting ? seen.add(e.target) : seen.delete(e.target)));
-        setBarHidden(seen.size > 0);
-      },
-      { rootMargin: "0px 0px -70px 0px" },
-    );
-    els.forEach((e) => io.observe(e));
+    const el = cta.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setCtaSeen(e.isIntersecting), { rootMargin: "-110px 0px 0px 0px" });
+    io.observe(el);
     return () => io.disconnect();
   }, [ready, cart.length]);
+  const barHidden = sheet;
 
   const hrefFor = (l: CartLine) => {
     if (l.kind === "build") return "/build";
@@ -247,7 +243,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
               </aside>
             </div>
           </div>
-          <div className="d-cart-bar" data-hidden={barHidden ? "" : undefined}>
+          <div className="d-cart-bar" data-hidden={barHidden ? "" : undefined} data-cta-seen={ctaSeen ? "" : undefined}>
             <div className="d-cart-bar-total">
               <span>Total</span>
               <strong>{inr(t.total)}</strong>

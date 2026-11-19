@@ -1,0 +1,42 @@
+/*
+ * Usability pass: bigger tap areas on phones without changing how anything
+ * looks. Each small control gets an invisible ring around it, so a thumb that
+ * lands just outside still counts (Apple and Google ask for about 44 px).
+ */
+@media (pointer: coarse), (max-width: 899px) {
+  .d-set-check,
+  .d-footer-social a,
+  .d-mini-step button,
+  .st-sv-sort,
+  .e-crumbs a,
+  .e-od-link,
+  .d-pin-link {
+    position: relative;
+  }
+  .d-set-check::after,
+  .d-footer-social a::after {
+    content: "";
+    position: absolute;
+    inset: -12px;
+  }
+  .d-mini-step button::after {
+    content: "";
+    position: absolute;
+    inset: -7px -4px;
+  }
+  .st-sv-sort::after,
+  .e-crumbs a::after,
+  .e-od-link::after,
+  .d-pin-link::after {
+    content: "";
+    position: absolute;
+    inset: -14px -6px;
+  }
+  /* iPhone zooms the page into any field under 16 px; keep fields at 16 px. */
+  .d-qstep input,
+  .dz input:not([type="checkbox"]):not([type="radio"]),
+  .dz textarea,
+  .dz select {
+    font-size: max(16px, 1em);
+  }
+}

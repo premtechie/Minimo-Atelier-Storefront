@@ -21,14 +21,44 @@
   pointer-events: none;
 }
 
-/* keep the WhatsApp button clear of a bottom bar */
-body:has(.m-cart-bar) .m-wafab,
-body:has(.m-floatbuy) .m-wafab {
-  bottom: calc(84px + env(safe-area-inset-bottom));
+/* Phone: the cart's Checkout bar stays at the bottom, so the WhatsApp button,
+   toasts and the end of the footer sit above it instead of under it. */
+@media (max-width: 899px) {
+  body:has(.d-cart-bar:not([data-hidden])) .m-wafab {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+  body:has(.d-cart-bar:not([data-hidden])) .d-toast--mobile {
+    bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+  body:has(.d-cart-bar) footer {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  body:has(.d-pdp-dock.show) .m-wafab {
+    bottom: calc(92px + env(safe-area-inset-bottom));
+  }
 }
-@media (min-width: 1024px) {
-  body:has(.m-cart-bar) .m-wafab,
-  body:has(.m-floatbuy) .m-wafab {
+/* Desktop: once the summary's Checkout scrolls away, a small Checkout card
+   floats in at the bottom of the summary column, so it is never out of reach. */
+@media (min-width: 900px) {
+  body .d-cart-bar {
+    display: flex;
+    left: auto;
+    right: max(24px, calc((100vw - 1240px) / 2 + 24px));
     bottom: 24px;
+    width: min(420px, 36vw);
+    padding: 12px 12px 12px 20px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: 0 12px 32px rgba(107, 68, 51, 0.14);
+  }
+  body .d-cart-bar[data-cta-seen] {
+    transform: translateY(16px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out), visibility 0s linear var(--dur-2);
+  }
+  body:has(.d-cart-bar:not([data-cta-seen]):not([data-hidden])) .m-wafab {
+    bottom: 104px;
   }
 }
