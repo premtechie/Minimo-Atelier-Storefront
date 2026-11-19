@@ -3,17 +3,18 @@
 import { SafeImg } from "./safe-img";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { addLine, cartTotals, lineRate, lineTotal, orderId, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
+import { addLine, cartTotals, lineRate, lineTotal, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
+import { newToken, rememberOrder, type Order, type SavedOrder } from "@/lib/orders";
+import { OrderPlaced } from "./orders-view";
 import { inr, plural } from "@/lib/format";
 import type { LiteItem } from "@/lib/lite";
-import { waLink } from "@/lib/whatsapp";
 import { Icon } from "./icon";
 import { useShop } from "./shop-provider";
 
 /*
  * The cart and its checkout sheet, in the approved design's markup: its mm-
  * classes are d- here and its plain classes e-; rules in styles/design/cart.css.
- * Nothing is charged on the site: the order goes to the store on WhatsApp.
+ * Nothing is charged on the site: the order is placed in the shop's admin and paid by UPI once confirmed.
  */
 
 export type CartPair = { sku: string; name: string; price: number; img: string; cap: number; filler: boolean };
@@ -56,6 +57,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
   const short = shortages(live, lookup);
   const t = cartTotals(live);
   const [sheet, setSheet] = useState(false);
+  const [placed, setPlaced] = useState<SavedOrder | null>(null);
   const [coupon, setCoupon] = useState("");
   const [couponMsg, setCouponMsg] = useState("");
   const [gift, setGift] = useState(false);
@@ -169,7 +171,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
                   Checkout <Icon name="arrowR" size={16} />
                 </button>
                 <p className="d-sum-secure">
-                  <Icon name="wa" size={13} /> Order on WhatsApp · Pay by UPI or at pickup
+                  <Icon name="lock" size={13} /> Nothing charged now · Pay by UPI once we confirm
                 </p>
                 {addons.length > 0 && (
                   <section className="d-cart-addons" aria-labelledby="h-addons">
@@ -210,7 +212,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
                   onSubmit={(e) => {
                     e.preventDefault();
                     const v = coupon.trim().toUpperCase();
-                    setCouponMsg(v ? `We'll check “${v}” when we confirm your order on WhatsApp.` : "Enter a code first.");
+                    setCouponMsg(v ? `We'll check “${v}” when we confirm your order.` : "Enter a code first.");
                   }}
                 >
                   <input
@@ -259,12 +261,16 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
       <Checkout
         open={sheet && live.length > 0}
         lines={live}
-        total={t.total}
-        discount={t.discount}
-        extras={[coupon.trim() ? `Coupon: ${coupon.trim().toUpperCase()}` : "", gift ? `Make it a gift${giftNote.trim() ? `, card note: ${giftNote.trim()}` : ""}` : ""]}
+        coupon={coupon.trim()}
+        giftNote={gift ? giftNote.trim() || "Make it a gift" : ""}
         onClose={() => setSheet(false)}
-        onDone={clear}
+        onPlaced={(o) => {
+          clear();
+          setSheet(false);
+          setPlaced(o);
+        }}
       />
+      {placed && <OrderPlaced saved={placed} onClose={() => setPlaced(null)} />}
     </div>
   );
 }
@@ -321,25 +327,28 @@ function Line({ l, href, cap, setQty, remove }: { l: CartLine; href: string; cap
   );
 }
 
-/** The design's two-step pre-checkout sheet, then a panel that sends the order on WhatsApp. */
+/**
+ * The design's two-step pre-checkout sheet. Continue places the order in the
+ * shop's admin (prices are worked out there, never taken from this page) and
+ * hands over to the full-screen "Order placed" moment.
+ */
 function Checkout({
   open,
   lines,
-  total,
-  discount,
-  extras,
+  coupon,
+  giftNote,
   onClose,
-  onDone,
+  onPlaced,
 }: {
   open: boolean;
   lines: CartLine[];
-  total: number;
-  discount: number;
-  extras: string[];
+  coupon: string;
+  giftNote: string;
   onClose: () => void;
-  onDone: () => void;
+  onPlaced: (o: SavedOrder) => void;
 }) {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [busy, setBusy] = useState(false);
   const [del, setDel] = useState<Delivery>("pickup");
   const [addr, setAddr] = useState("");
   const [pin, setPin] = useState("");
@@ -347,7 +356,9 @@ function Checkout({
   const [updates, setUpdates] = useState(true);
   const [err, setErr] = useState("");
   const [err2, setErr2] = useState("");
-  const [id] = useState(() => orderId());
+  // One secret per checkout: it identifies this order to the shop, and a
+  // second tap on Continue places the same order, not a second one.
+  const [token, setToken] = useState(() => newToken());
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -375,19 +386,44 @@ function Checkout({
   const d = DELIVERY.find((x) => x.id === del)!;
   const when = pick || del === "flat" ? `Ready ${dayName(2)}` : pin.startsWith("500") ? `By ${dayName(3)}` : "In 4–7 days";
   const where = pick ? "Pickup at our store" : del === "flat" ? "To your flat in Honer Vivantis" : `Delivering to ${pin}`;
-  const message = [
-    `Hi Minimo, I'd like to place order ${id}:`,
-    ...lines.map((l) => `• ${l.qty} × ${lineName(l)}${l.note ? ` (name tag: ${l.note})` : ""}${l.kind === "build" && l.detail ? ` [${l.detail}]` : ""}: ${inr(lineTotal(l))}`),
-    discount > 0 ? `Bulk discount: −${inr(discount)}` : "",
-    `Total: ${inr(total)}`,
-    `Delivery: ${d.label}${needAddr && addr.trim() ? `, ${addr.trim()}` : ""}${!pick && pin ? ` ${pin}` : ""}`,
-    ...extras,
-    mob ? `Mobile: +91 ${mob}${updates ? " (order updates on WhatsApp)" : ""}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
 
-  const pos = (p: 1 | 2 | 3) => (p === step || (p === 2 && step === 3) ? "on" : p < step ? "left" : "right");
+  const pos = (p: 1 | 2) => (p === step ? "on" : p < step ? "left" : "right");
+  const place = async () => {
+    if (!/^[6-9]\d{9}$/.test(mob)) {
+      setErr2("Enter a 10-digit mobile number.");
+      mobRef.current?.focus();
+      return;
+    }
+    setErr2("");
+    setBusy(true);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          token,
+          delivery: del,
+          address: needAddr ? addr.trim() : "",
+          pin: pick ? "" : pin,
+          phone: mob,
+          gift_note: giftNote,
+          coupon,
+          lines: lines.map((l) => ({ name: lineName(l), qty: l.qty, parts: l.parts, note: l.note, detail: l.kind === "build" ? l.detail : undefined, bulk: l.bulk !== false })),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { order?: Order; error?: { message?: string } };
+      if (!res.ok || !data.order) throw new Error(data.error?.message || "We couldn't place your order just now. Please try again.");
+      const saved: SavedOrder = { number: data.order.number, token, at: Date.now(), images: lines.map((l) => l.image), order: data.order };
+      rememberOrder(saved);
+      setToken(newToken());
+      setStep(1);
+      onPlaced(saved);
+    } catch (e) {
+      setErr2(e instanceof Error ? e.message : "Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
   const step1 = () => {
     if (needAddr && addr.trim().length < 4) return setErr(del === "flat" ? "Add your tower and flat number." : "Add your delivery address.");
     if (needPin && !/^\d{6}$/.test(pin)) return setErr("Enter a 6-digit PIN code.");
@@ -405,7 +441,7 @@ function Checkout({
           <div className="d-pre-drag">
             <span className="d-sheet-handle" />
             <div className="d-pre-top">
-              <p className="d-eyebrow">{step === 3 ? "Ready to send" : "Almost there"}</p>
+              <p className="d-eyebrow">Almost there</p>
               <button className="d-sheet-close" onClick={onClose} aria-label="Close">
                 <Icon name="x" size={16} />
               </button>
@@ -518,6 +554,7 @@ function Checkout({
                       ref={mobRef}
                       value={mob}
                       onChange={(e) => setMob(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      onKeyDown={(e) => e.key === "Enter" && !busy && void place()}
                       inputMode="numeric"
                       maxLength={10}
                       placeholder="10-digit mobile"
@@ -529,60 +566,15 @@ function Checkout({
                     {err2}
                   </p>
                   <div className="d-pc-actions">
-                    <button
-                      className="d-pc-skip"
-                      onClick={() => {
-                        setMob("");
-                        setErr2("");
-                        setStep(3);
-                      }}
-                    >
-                      Skip
-                    </button>
-                    <button
-                      className="d-sum-cta d-precheckout-cta"
-                      onClick={() => {
-                        if (!/^[6-9]\d{9}$/.test(mob)) return setErr2("Enter a 10-digit mobile number.");
-                        setErr2("");
-                        setStep(3);
-                      }}
-                    >
-                      Continue <Icon name="arrowR" size={16} />
+                    <button className="d-sum-cta d-precheckout-cta" onClick={() => void place()} disabled={busy} aria-busy={busy}>
+                      {busy ? "Placing your order…" : "Place order"} {!busy && <Icon name="arrowR" size={16} />}
                     </button>
                   </div>
                   <label className="d-pc-optin">
                     <input type="checkbox" checked={updates} onChange={(e) => setUpdates(e.target.checked)} /> Order updates on WhatsApp
                   </label>
-                  <p className="d-pre-legal">Your number is used only for this order.</p>
+                  <p className="d-pre-legal">Nothing is charged now. We confirm stock, then send you a UPI link. Your number is used only for this order.</p>
                 </>
-              )}
-              {step === 3 && (
-                <div className="d-pre-done">
-                  <span className="d-sheet-success-mark">
-                    <Icon name="check" size={26} />
-                  </span>
-                  <h2 className="d-precheckout-title" id="h-co">
-                    Send order {id}
-                  </h2>
-                  <p className="d-pre-sub">
-                    {inr(total)} · {d.label}
-                    {mob ? ` · updates to +91 ${mob.slice(0, 5)} ${mob.slice(5)}` : ""}
-                  </p>
-                  <p className="d-pre-legal">Nothing is charged here. WhatsApp opens with your order; we confirm stock, then you pay by UPI or at pickup.</p>
-                  <a className="d-sum-cta d-precheckout-cta" href={waLink(message)} target="_blank" rel="noopener">
-                    <Icon name="wa" size={16} /> Send on WhatsApp
-                  </a>
-                  <button
-                    className="d-pc-skip d-btn-line"
-                    onClick={() => {
-                      onDone();
-                      onClose();
-                      setStep(1);
-                    }}
-                  >
-                    I&apos;ve sent it, clear my cart
-                  </button>
-                </div>
               )}
             </div>
           </div>

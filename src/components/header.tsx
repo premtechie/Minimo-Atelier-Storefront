@@ -36,6 +36,7 @@ const MENU: { href: string; label: string }[] = [
   { href: "/for-him", label: "For him" },
   { href: "/bulk-orders", label: "Bulk & school orders" },
   { href: "/visit-our-store", label: "Visit our store" },
+  { href: "/orders", label: "My orders" },
   { href: "/cart", label: "Cart" },
 ];
 
@@ -193,7 +194,7 @@ export function InnerHeader() {
             >
               <Icon name="search" size={20} />
             </Link>
-            <Link href="/visit-our-store" className="m-md-only" aria-label="Visit our store">
+            <Link href="/orders" className="m-md-only" aria-label="My orders" title="My orders">
               <Icon name="user" size={20} />
             </Link>
             <WishButton className="" />

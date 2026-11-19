@@ -4,7 +4,7 @@ const ITEMS: [IconName, string, string][] = [
   ["store", "Free store pickup", "Inside Honer Vivantis"],
   ["clock", "Ready in 48 h", "24 h rush if stock allows"],
   ["tag", "Name-tagged", "Wish tag on every bag"],
-  ["wa", "Order on WhatsApp", "Pay after we confirm"],
+  ["lock", "Order online", "Pay by UPI after we confirm"],
 ];
 
 export function Trust({ className = "" }: { className?: string }) {

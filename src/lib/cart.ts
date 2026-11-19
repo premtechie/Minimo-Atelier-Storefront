@@ -79,7 +79,3 @@ export function addLine(lines: CartLine[], line: CartLine): CartLine[] {
   return [...lines, line];
 }
 
-export function orderId(now = new Date()) {
-  const d = now.toISOString().slice(2, 10).replace(/-/g, "");
-  return `MA-${d}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-}
