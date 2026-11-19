@@ -37,8 +37,8 @@
 .st-shred--back { z-index: 2; bottom: calc(100% - var(--rim) - 6%); height: 30%; object-fit: cover; object-position: 50% 40%; -webkit-mask-image: linear-gradient(transparent, #000 35%); mask-image: linear-gradient(transparent, #000 35%); }
 .st-shred--front { z-index: 35; bottom: calc(100% - var(--rim) - 10%); left: 3%; width: 94%; height: 18%; object-fit: cover; object-position: 50% 30%; -webkit-mask-image: linear-gradient(transparent, #000 45%); mask-image: linear-gradient(transparent, #000 45%); }
 .st-items { position: absolute; inset: 0; z-index: 3; }
-.st-it { position: absolute; display: block; padding: 0; border: 0; background: none; cursor: pointer; transform: translateX(-50%) rotate(var(--r, 0deg)); transform-origin: 50% 100%; transition: left .5s cubic-bezier(.3, 1.3, .5, 1), bottom .5s cubic-bezier(.3, 1.3, .5, 1), height .5s cubic-bezier(.3, 1.3, .5, 1), translate .25s var(--ease); -webkit-tap-highlight-color: transparent; }
-.st-it img { display: block; height: 100%; width: auto; max-width: none; filter: drop-shadow(0 6px 7px rgba(60, 30, 20, .22)); user-select: none; -webkit-user-drag: none; pointer-events: none; }
+.st-it { position: absolute; display: flex; align-items: flex-end; justify-content: center; padding: 0; border: 0; background: none; cursor: pointer; transform: translateX(-50%) rotate(var(--r, 0deg)); transform-origin: 50% 100%; transition: left .5s cubic-bezier(.3, 1.3, .5, 1), bottom .5s cubic-bezier(.3, 1.3, .5, 1), height .5s cubic-bezier(.3, 1.3, .5, 1), translate .25s var(--ease); -webkit-tap-highlight-color: transparent; }
+.st-it img { display: block; height: 100%; width: 100%; max-width: none; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 6px 7px rgba(60, 30, 20, .22)); user-select: none; -webkit-user-drag: none; pointer-events: none; }
 @media (hover: hover) { .st-box:not(.is-wrapped) .st-it:hover { translate: 0 -10px; } }
 .st-it:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; border-radius: 8px; }
 .st-box.is-out { animation: st-box-out .42s cubic-bezier(.5, 0, .9, .4) both; pointer-events: none; }
@@ -309,7 +309,7 @@
 /* ---- live catalogue additions ---- */
 .st-in { padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
 @media (min-width: 768px) { .st-in { padding-inline: 32px; } }
-.st-it.is-photo img { border-radius: 10px; box-shadow: 0 6px 12px rgba(60, 30, 20, .18); filter: none; }
+.st-it.is-photo img { width: auto; height: auto; max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 6px 12px rgba(60, 30, 20, .18); filter: none; }
 .st-card-img.is-photo { overflow: hidden; }
 .st-card-img.is-photo img { inset: 0; width: 100%; height: 100%; object-fit: cover; filter: none; }
 /* Low-stock note sits on the photo so the card keeps the design's height. */

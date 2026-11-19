@@ -35,7 +35,8 @@ export function tabForWho(mode: Mode, who: string): string | null {
   return who === "Girls" ? "Accessories" : who === "Boys" ? "Toys" : null;
 }
 
-export type Slot = { x: number; row: 0 | 1; rot: number };
+/** x: centre across the opening; w: the share of the opening this piece may use. */
+export type Slot = { x: number; w: number; row: 0 | 1; rot: number };
 
 /** Where n pieces sit in the opening: one row, or a back and a front row when it fills up. */
 export function slots(n: number, c: Pick<Container, "ox" | "hamper">): Slot[] {
@@ -52,7 +53,7 @@ export function slots(n: number, c: Pick<Container, "ox" | "hamper">): Slot[] {
     const start = a + (b - a - span) / 2;
     const x = start + span * ((k + 0.5) / cnt);
     const seed = (i * 37 + n * 11) % 13;
-    out.push({ x, row: rows === 2 && !inBack ? 1 : 0, rot: (seed - 6) * (c.hamper ? 0.7 : 1.1) });
+    out.push({ x, w: span / cnt, row: rows === 2 && !inBack ? 1 : 0, rot: (seed - 6) * (c.hamper ? 0.7 : 1.1) });
   }
   return out;
 }
@@ -60,12 +61,19 @@ export function slots(n: number, c: Pick<Container, "ox" | "hamper">): Slot[] {
 /** Inline style for one piece inside the container. */
 export function itemStyle(s: Slot, i: number, c: Pick<Container, "ih" | "hamper" | "rim" | "sink">, size = 1) {
   const h = c.ih * size * (c.hamper ? 0.8 : 1);
-  const lift = s.row ? -0.035 : 0.035;
-  const bottom = 1 - c.rim - c.sink + lift;
+  const lift = s.row ? -0.02 : c.hamper ? 0.035 : 0.07;
+  // A bag shows a good part of each piece above its rim, so it reads as
+  // "in the bag" rather than hidden behind it (the box art keeps its depth).
+  const sink = c.hamper ? c.sink : c.sink * 0.55;
+  const bottom = 1 - c.rim - sink + lift;
+  // Each piece keeps to its share of the opening, so a wide piece shrinks to
+  // fit instead of spilling past the sides of the bag.
+  const w = Math.min(s.w * (c.hamper ? 1.25 : 1.3), c.hamper ? 0.5 : 0.62);
   return {
     left: `${(s.x * 100).toFixed(2)}%`,
     bottom: `${(bottom * 100).toFixed(2)}%`,
     height: `${(h * 100).toFixed(2)}%`,
+    width: `${(w * 100).toFixed(2)}%`,
     "--r": `${s.rot.toFixed(1)}deg`,
     zIndex: s.row ? 20 + i : 10 + i,
   } as React.CSSProperties;
