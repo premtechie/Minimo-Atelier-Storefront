@@ -1,5 +1,6 @@
 "use client";
 
+import { SafeImg } from "./safe-img";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { addLine, cartTotals, lineRate, lineTotal, orderId, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
@@ -179,8 +180,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
                       {addons.map((x) => (
                         <li key={x.sku} className="d-freeship-add">
                           <span className="d-freeship-thumb">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={x.img} alt="" loading="lazy" decoding="async" draggable={false} />
+                            <SafeImg src={x.img} alt="" loading="lazy" decoding="async" draggable={false} />
                           </span>
                           <span className="d-freeship-info">
                             <span className="d-freeship-name">{x.name}</span>
@@ -282,8 +282,7 @@ function Line({ l, href, cap, setQty, remove }: { l: CartLine; href: string; cap
     <div className="d-cart-item">
       <Link className="d-cart-item-thumb" href={href} aria-label={lineName(l)}>
         {l.image && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={l.image} alt="" loading="lazy" decoding="async" draggable={false} />
+          <SafeImg src={l.image} alt="" loading="lazy" decoding="async" draggable={false} />
         )}
       </Link>
       <div className="d-ci-body">
@@ -483,8 +482,7 @@ function Checkout({
                       {lines.slice(0, 2).map((l) => (
                         <span key={l.key} className="d-pc-thumb">
                           {l.image && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={l.image} alt="" loading="lazy" decoding="async" draggable={false} />
+                            <SafeImg src={l.image} alt="" loading="lazy" decoding="async" draggable={false} />
                           )}
                         </span>
                       ))}

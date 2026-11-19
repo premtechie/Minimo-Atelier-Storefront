@@ -12,7 +12,7 @@ import { FullTour } from "./store-tour";
 import { openSearch } from "./search-sheet";
 
 export const NAV: { href: string; label: string }[] = [
-  { href: "/shop", label: "Shop" },
+  { href: "/shop/return-gifts", label: "Shop" },
   { href: "/build", label: "Build your own" },
   { href: "/for-her", label: "For her" },
   { href: "/for-him", label: "For him" },
@@ -20,7 +20,7 @@ export const NAV: { href: string; label: string }[] = [
 ];
 
 const PILLS: { href: string; label: string; icon: IconName }[] = [
-  { href: "/shop", label: "All", icon: "grid" },
+  { href: "/", label: "All", icon: "grid" },
   { href: "/shop/return-gifts", label: "Return gifts", icon: "gift" },
   { href: "/build", label: "Build your own", icon: "wand" },
   { href: "/shop/kids", label: "Kids' favourites", icon: "bottle" },
@@ -29,7 +29,7 @@ const PILLS: { href: string; label: string; icon: IconName }[] = [
 ];
 
 const MENU: { href: string; label: string }[] = [
-  { href: "/shop", label: "Shop all" },
+  { href: "/shop/return-gifts", label: "Shop all" },
   { href: "/build", label: "Build your own" },
   { href: "/shop/kids", label: "Kids' favourites" },
   { href: "/for-her", label: "For her" },
@@ -176,7 +176,7 @@ export function InnerHeader() {
           <Logo className="m-logo--in" />
           <nav className="m-hin-nav" aria-label="Main">
             {NAV.map((n) => (
-              <Link key={n.href} href={n.href} aria-current={path === n.href || path.startsWith(n.href + "/") ? "page" : undefined}>
+              <Link key={n.href} href={n.href} aria-current={path === n.href || path.startsWith(n.href + "/") || (n.label === "Shop" && path.startsWith("/shop/")) ? "page" : undefined}>
                 {n.label}
               </Link>
             ))}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SafeImg } from "./safe-img";
 import type { ReactNode } from "react";
 import { waLink } from "@/lib/whatsapp";
 import { Icon, type IconName } from "./icon";
@@ -81,8 +82,7 @@ export function Care({ id, eyebrow, title, items }: { id: string; eyebrow: strin
               <>
                 {it.img ? (
                   <span className="d-care-icon d-care-img">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={it.img} alt="" loading="lazy" />
+                    <SafeImg src={it.img} alt="" loading="lazy" />
                   </span>
                 ) : (
                   <span className="d-care-icon">

@@ -52,7 +52,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
     },
   };
 
-  const images: GalleryImage[] = p.photoUrl ? [{ src: p.photoUrl, alt: p.name, sample: false }] : p.art ? [{ src: p.art, alt: p.name, sample: true }] : [];
+  const images: GalleryImage[] = p.photoUrl ? [{ src: p.photoUrl, alt: p.name, sample: false, fallback: p.art }] : p.art ? [{ src: p.art, alt: p.name, sample: true }] : [];
   const pairs = pairsFor(store, { skip: new Set([p.sku]), bags: gift ? 1 : 0, extras: gift ? 2 : 3, tab: p.tab });
   const care: CareItem[] = [
     { icon: "drop", label: "Wipe with a dry cloth" },

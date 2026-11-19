@@ -6,6 +6,7 @@
  * mm- classes are d- here; their rules live in styles/design/pdp.css).
  */
 
+import { SafeImg } from "./safe-img";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -16,7 +17,7 @@ import { waLink } from "@/lib/whatsapp";
 import { Icon, type IconName } from "./icon";
 import { useShop } from "./shop-provider";
 
-export type GalleryImage = { src: string; alt: string; sample: boolean };
+export type GalleryImage = { src: string; alt: string; sample: boolean; fallback?: string | null };
 
 export function Gallery({ images, wishId, name }: { images: GalleryImage[]; wishId: string; name: string }) {
   const track = useRef<HTMLDivElement>(null);
@@ -45,8 +46,7 @@ export function Gallery({ images, wishId, name }: { images: GalleryImage[]; wish
           >
             {images.map((im, i) => (
               <div className="d-gal-slide" key={im.src + i}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={im.src} alt={i === 0 ? im.alt : ""} loading={i === 0 ? "eager" : "lazy"} decoding="async" draggable={false} />
+                <SafeImg src={im.src} fallback={im.fallback} alt={i === 0 ? im.alt : ""} loading={i === 0 ? "eager" : "lazy"} decoding="async" draggable={false} />
                 {im.sample && <span className="m-sample">Sample picture</span>}
               </div>
             ))}
@@ -73,8 +73,7 @@ export function Gallery({ images, wishId, name }: { images: GalleryImage[]; wish
         <div className="d-thumbs-scroll">
           {images.map((im, i) => (
             <button type="button" key={im.src + i} className="d-thumb" aria-pressed={i === at} aria-label={`Photo ${i + 1}`} onClick={() => go(i)}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={im.src} alt="" loading="lazy" decoding="async" />
+              <SafeImg src={im.src} fallback={im.fallback} alt="" loading="lazy" decoding="async" />
             </button>
           ))}
         </div>
@@ -430,8 +429,7 @@ export function Pairs({ self, pairs }: { self: { name: string; price: number; im
               </span>
               <span className="d-set-link">
                 <span className="d-set-thumb">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={self.img} alt="" loading="lazy" />
+                  <SafeImg src={self.img} alt="" loading="lazy" />
                 </span>
                 <span className="d-set-name">
                   {self.name} <span className="d-set-this">· this item</span>
@@ -456,8 +454,7 @@ export function Pairs({ self, pairs }: { self: { name: string; price: number; im
                 </label>
                 <Link className="d-set-link" href={x.href}>
                   <span className="d-set-thumb">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={x.img} alt="" loading="lazy" />
+                    <SafeImg src={x.img} alt="" loading="lazy" />
                   </span>
                   <span className="d-set-name">{x.name}</span>
                 </Link>

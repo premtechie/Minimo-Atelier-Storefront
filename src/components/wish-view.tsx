@@ -1,5 +1,6 @@
 "use client";
 
+import { SafeImg } from "./safe-img";
 import Link from "next/link";
 import { inr } from "@/lib/format";
 import type { LiteItem } from "@/lib/lite";
@@ -37,8 +38,8 @@ export function WishView({ items }: { items: LiteItem[] }) {
             <Link href={x.href} className="m-card-link">
               <div className="m-card-media">
                 {x.image && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={x.image} alt="" loading="lazy" />
+                   
+                  <SafeImg src={x.image} alt="" loading="lazy" />
                 )}
                 {x.cap === 0 && <span className="m-badge is-low">Sold out</span>}
               </div>

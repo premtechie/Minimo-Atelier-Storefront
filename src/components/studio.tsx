@@ -1,5 +1,6 @@
 "use client";
 
+import { SafeImg } from "./safe-img";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Icon } from "./icon";
@@ -79,7 +80,7 @@ function BoxArt({
           const p = pieces[it.sku];
           if (!p) return null;
           const st = itemStyle(s[i], i, box, p.size);
-          const img = <img src={p.img} alt="" draggable={false} />;
+          const img = <SafeImg src={p.img} alt="" draggable={false} />;
           return live ? (
             <button key={it.u} type="button" className={`st-it ${p.cut ? "" : "is-photo"}`} data-u={it.u} style={st} aria-label={`Take out ${p.name}`} onClick={() => onOut(it.u)}>
               {img}
@@ -954,8 +955,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                   }}
                 >
                   <span className={`st-card-img ${p.cut ? "" : "is-photo"}`}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.img} alt="" draggable={false} loading="lazy" />
+                    <SafeImg src={p.img} alt="" draggable={false} loading="lazy" />
                   </span>
                   <span className="st-card-name">{p.name}</span>
                   <span className="st-card-price">{inr(p.price)}</span>
