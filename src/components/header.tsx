@@ -3,9 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { Icon, type IconName } from "./icon";
 import { useShop } from "./shop-provider";
+import { waLink } from "@/lib/whatsapp";
+import { FullTour } from "./store-tour";
+import { openSearch } from "./search-sheet";
 
 export const NAV: { href: string; label: string }[] = [
   { href: "/shop", label: "Shop" },
@@ -25,14 +29,14 @@ const PILLS: { href: string; label: string; icon: IconName }[] = [
 ];
 
 const MENU: { href: string; label: string }[] = [
-  { href: "/shop/return-gifts", label: "Return gifts" },
-  { href: "/build", label: "Build your own ✨" },
-  { href: "/build?mode=hampers", label: "Hampers" },
+  { href: "/shop", label: "Shop all" },
+  { href: "/build", label: "Build your own" },
   { href: "/shop/kids", label: "Kids' favourites" },
   { href: "/for-her", label: "For her" },
   { href: "/for-him", label: "For him" },
   { href: "/bulk-orders", label: "Bulk & school orders" },
   { href: "/visit-our-store", label: "Visit our store" },
+  { href: "/cart", label: "Cart" },
 ];
 
 function Logo({ className }: { className?: string }) {
@@ -70,26 +74,35 @@ function WishButton({ className = "m-iconbtn" }: { className?: string }) {
   );
 }
 
+const noop = () => () => {};
+
+/** The design's slide-in menu (fullmenu mm-mnav), portalled so no header layer clips it. */
 function Menu({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const box = useRef<HTMLDivElement>(null);
+  const mounted = useSyncExternalStore(noop, () => true, () => false);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
     document.documentElement.classList.add("m-lock");
+    box.current?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
     return () => {
       document.removeEventListener("keydown", onKey);
       document.documentElement.classList.remove("m-lock");
     };
   }, [open, onClose]);
-  return (
-    <div className={`m-menu ${open ? "is-open" : ""}`} role="dialog" aria-modal="true" aria-label="Menu" hidden={!open}>
-      <div className="m-menu-top">
-        <Logo />
-        <button className="m-iconbtn" onClick={onClose} aria-label="Close menu">
-          <Icon name="x" size={20} />
+  if (!mounted) return null;
+  return createPortal(
+    <div ref={box} className={`e-fullmenu d-mnav ${open ? "open" : ""}`} role="dialog" aria-modal="true" aria-label="Menu" inert={!open}>
+      <div className="d-mnav-top">
+        <Link className="d-hdr-logo" href="/" onClick={onClose} aria-label="Minimo Atelier, home">
+          <Image src="/brand/logo.png" alt="Minimo Atelier" width={480} height={265} />
+        </Link>
+        <button className="d-sheet-close" onClick={onClose} aria-label="Close menu">
+          <Icon name="x" size={18} />
         </button>
       </div>
-      <nav className="m-menu-list" aria-label="Shop">
+      <nav className="d-mnav-links" aria-label="Menu">
         {MENU.map((m) => (
           <Link key={m.href} href={m.href} onClick={onClose}>
             {m.label}
@@ -97,39 +110,36 @@ function Menu({ open, onClose }: { open: boolean; onClose: () => void }) {
           </Link>
         ))}
       </nav>
-      <div className="m-menu-foot">
-        <Link href="/cart" onClick={onClose}>Cart</Link>
-        <Link href="/wishlist" onClick={onClose}>Wishlist</Link>
-        <Link href="/search" onClick={onClose}>Search</Link>
+      <div className="d-mnav-foot">
+        <a className="d-mnav-wa" href={waLink()} target="_blank" rel="noopener">
+          <Icon name="wa" size={18} /> WhatsApp us
+        </a>
+        <span>Inside Honer Vivantis, Hyderabad</span>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 /** Home: store button, centred logo, cart and menu, then the floating pill switcher. */
-/** "/" opens search from anywhere, unless the shopper is typing. */
-function useSlashSearch() {
-  const router = useRouter();
-  useEffect(() => {
-    const on = (e: KeyboardEvent) => {
-      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
-      const t = e.target as HTMLElement | null;
-      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
-      e.preventDefault();
-      router.push("/search");
-    };
-    window.addEventListener("keydown", on);
-    return () => window.removeEventListener("keydown", on);
-  }, [router]);
-}
-
 export function HomeHeader() {
-  useSlashSearch();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [tour, setTour] = useState(false);
   return (
     <header className="m-hhome">
       <div className="m-hhome-row">
-        <Link href="/visit-our-store" className="m-iconbtn m-iconbtn--card" aria-label="Visit our store">
+        <Link
+          href="/visit-our-store"
+          className="m-iconbtn m-iconbtn--card"
+          aria-label="Visit our store"
+          title="Take a tour of our store"
+          onClick={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+            e.preventDefault();
+            setTour(true);
+          }}
+        >
           <Icon name="store" size={20} />
         </Link>
         <Logo className="m-logo--home" />
@@ -150,13 +160,13 @@ export function HomeHeader() {
         ))}
       </nav>
       <Menu open={open} onClose={() => setOpen(false)} />
+      {tour && <FullTour onClose={() => setTour(false)} onDetails={() => router.push("/visit-our-store")} />}
     </header>
   );
 }
 
 /** Inner pages: compact sticky header and the cocoa strip under it. */
 export function InnerHeader() {
-  useSlashSearch();
   const [open, setOpen] = useState(false);
   const path = usePathname();
   return (
@@ -172,7 +182,15 @@ export function InnerHeader() {
             ))}
           </nav>
           <div className="m-hin-icons">
-            <Link href="/search" aria-label="Search">
+            <Link
+              href="/search"
+              aria-label="Search"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+                e.preventDefault();
+                openSearch();
+              }}
+            >
               <Icon name="search" size={20} />
             </Link>
             <Link href="/visit-our-store" className="m-md-only" aria-label="Visit our store">

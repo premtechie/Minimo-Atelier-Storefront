@@ -162,7 +162,7 @@ export function HomeHero({ packs }: { packs: ResolvedPack[] }) {
           <button
             className="m-hero-add"
             aria-label={`Add ${BULK_AT} ${k.name} packs to cart`}
-            onClick={() => add(packLine(k, BULK_AT), `${BULK_AT} × ${k.name} added to your cart`)}
+            onClick={() => add(packLine(k, BULK_AT), `Added ${BULK_AT} × ${k.name}`)}
           >
             <Icon name="bag" size={18} />
           </button>

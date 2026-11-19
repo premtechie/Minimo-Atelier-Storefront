@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { InnerHeader } from "@/components/header";
-import { Icon } from "@/components/icon";
+import { EIcon } from "@/components/icon";
 import { StoreTour } from "@/components/store-tour";
 import { SHOP } from "@/lib/merch";
 import { waLink } from "@/lib/whatsapp";
@@ -25,7 +25,7 @@ export default function VisitStore() {
           </div>
           <div className="e-info-grid">
             <div className="e-info">
-              <Icon name="pin" size={22} className="e-icon" />
+              <EIcon name="pin" />
               <h3>Where</h3>
               <p>{SHOP.where}</p>
               <p className="small muted">Ask us on WhatsApp for the shop number</p>
@@ -34,12 +34,12 @@ export default function VisitStore() {
               </a>
             </div>
             <div className="e-info">
-              <Icon name="clock" size={22} className="e-icon" />
+              <EIcon name="clock" />
               <h3>Hours</h3>
               <p className="muted">{SHOP.hours || "Message us on WhatsApp for hours"}</p>
             </div>
             <div className="e-info">
-              <Icon name="bag" size={22} className="e-icon" />
+              <EIcon name="bag" />
               <h3>Pickup</h3>
               <p>Free. Orders are ready in 48 h. We&apos;ll message you on WhatsApp when it&apos;s packed.</p>
             </div>
@@ -56,7 +56,7 @@ export default function VisitStore() {
                 <h2>WhatsApp is fastest</h2>
                 <p className="muted">Send a photo of your party theme and we&apos;ll suggest a mix.</p>
                 <a className="e-btn e-btn-wa" href={waLink("Hi Minimo, I'd like to visit the store.")} target="_blank" rel="noopener">
-                  <Icon name="wa" size={18} className="e-icon sm" /> WhatsApp us
+                  <EIcon name="wa" sm /> WhatsApp us
                 </a>
               </div>
             </div>

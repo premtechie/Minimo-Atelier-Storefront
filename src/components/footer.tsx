@@ -4,20 +4,23 @@ import { SHOP } from "@/lib/merch";
 import { waLink } from "@/lib/whatsapp";
 import { Icon } from "./icon";
 
+/* The approved design's footer (mm-footer, d- here; rules in styles/design/footer.css). */
 const COLS: { title: string; links: [string, string][] }[] = [
-  { title: "Shop", links: [["Return gifts", "/shop/return-gifts"], ["Build your own", "/build"], ["Hampers", "/build?mode=hampers"], ["For her", "/for-her"], ["For him", "/for-him"]] },
-  { title: "Help", links: [["Delivery & pickup", "/visit-our-store#delivery"], ["Bulk orders", "/bulk-orders"], ["Contact", "/visit-our-store#contact"]] },
-  { title: "About", links: [["Visit our store", "/visit-our-store"], ["Wishlist", "/wishlist"]] },
+  { title: "Shop", links: [["Return gifts", "/shop/return-gifts"], ["Build your own", "/build"], ["For her", "/for-her"], ["For him", "/for-him"]] },
+  { title: "Help", links: [["Delivery & pickup", "/visit-our-store#store-info"], ["Bulk orders", "/bulk-orders"], ["Track order", "/cart"], ["Contact", "/visit-our-store"]] },
+  { title: "About", links: [["Visit our store", "/visit-our-store"], ["Our story", "/"]] },
 ];
 
 export function Footer() {
   return (
-    <footer className="m-foot">
-      <div className="m-foot-in">
-        <div className="m-foot-brand">
-          <Image src="/brand/logo-light.png" alt="Minimo Atelier" width={180} height={84} className="m-foot-logo" />
+    <footer className="d-footer dz">
+      <div className="d-footer-grid">
+        <div className="d-footer-brand">
+          <Link href="/">
+            <Image src="/brand/logo-light.png" alt="Minimo Atelier" width={480} height={265} className="d-footer-logo" />
+          </Link>
           <p>Return gifts and hampers kids actually keep. Packed by hand in our store inside Honer Vivantis, Hyderabad.</p>
-          <div className="m-foot-social">
+          <div className="d-footer-social">
             <a href={SHOP.instagram} target="_blank" rel="noopener" aria-label="Instagram">
               <Icon name="instagram" size={20} />
             </a>
@@ -27,20 +30,21 @@ export function Footer() {
           </div>
         </div>
         {COLS.map((c) => (
-          <nav key={c.title} className="m-foot-col" aria-label={c.title}>
+          <nav key={c.title} aria-label={c.title}>
             <h2>{c.title}</h2>
-            {c.links.map(([l, h]) => (
-              <Link key={h} href={h}>
-                {l}
-              </Link>
-            ))}
+            <ul>
+              {c.links.map(([l, h]) => (
+                <li key={l}>
+                  <Link href={h}>{l}</Link>
+                </li>
+              ))}
+            </ul>
           </nav>
         ))}
       </div>
-      <div className="m-foot-base">
+      <div className="d-footer-bottom">
         <span>© {new Date().getFullYear()} Minimo Atelier. All rights reserved.</span>
       </div>
     </footer>
   );
 }
-

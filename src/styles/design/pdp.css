@@ -399,3 +399,19 @@
 /* The icon sits inside the term (a dl may only hold dt and dd); the column layout is unchanged. */
 .d-spec dt { display: flex; flex-direction: column; gap: 2px; }
 .d-spec dt .d-spec-icon { height: 27px; } /* the design's inline icon line box */
+
+/* PDP checkout state after adding (ported from the design). */
+@keyframes d-dock-flow { 0% { opacity: 0; background-position: 120% 0px; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; background-position: -20% 0px; } }
+.d-liquid-btn.d-liquid-btn--buy.d-pdp-checkout { background: var(--brand); color: rgb(255, 255, 255); font-weight: 600; box-shadow: rgba(107, 68, 51, 0.24) 0px 6px 18px, rgba(107, 68, 51, 0.12) 0px 2px 6px; }
+.d-pdp-checkout .d-liquid-btn-edge, .d-pdp-checkout .d-liquid-btn-lens { display: none; }
+.d-pdp-checkout .d-liquid-btn-label svg { color: rgb(255, 255, 255); }
+.d-liquid-btn.d-pdp-checkout:disabled { opacity: 1; background: rgb(42, 56, 96); }
+.d-pdp-checkout .d-pdp-dock-flow { background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.1) 42%, rgba(255, 255, 255, 0.42) 50%, rgba(255, 255, 255, 0.1) 58%, transparent 70%) 0% 0% / 240% 100%; }
+.d-pdp-dock-flow { position: absolute; inset: 0px; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; background: linear-gradient(105deg, transparent 28%, rgba(176, 138, 118, 0.55) 40%, rgba(255, 255, 255, 0.95) 50%, rgba(176, 138, 118, 0.55) 60%, transparent 72%) 120% 0px / 240% 100%; }
+.is-flowing > .d-pdp-dock-flow { animation: 1.4s cubic-bezier(0.45, 0, 0.25, 1) 0s 1 normal both running d-dock-flow; }
+@media (prefers-reduced-motion: reduce) {
+  .is-flowing > .d-pdp-dock-flow { animation: auto ease 0s 1 normal none running none; }
+}

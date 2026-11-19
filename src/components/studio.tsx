@@ -454,7 +454,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
       detail: `${box.name}: ${items.map((i) => pieces[i.sku]?.name).join(", ")}`,
       ref: box.key,
       bulk: rg,
-    });
+    }, `${label} is in your cart`, { href: "/cart", label: "View cart" });
   };
 
   /* ---------- saved builds ---------- */

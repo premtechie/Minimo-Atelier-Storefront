@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { waLink } from "@/lib/whatsapp";
-import { Icon } from "./icon";
+import { EIcon } from "./icon";
 
 /** Bulk and school order request, sent to the shop on WhatsApp. The design's quote panel (styles/design/visit.css). */
 export function BulkForm() {
@@ -62,7 +62,7 @@ export function BulkForm() {
         <textarea className="e-input" id="bk-note" name="notes" maxLength={400} placeholder="Theme, boys/girls split, name tags…" />
       </div>
       <button className="e-btn e-btn-wa e-btn-block" type="submit">
-        <Icon name="wa" size={18} /> Send on WhatsApp
+        <EIcon name="wa" sm /> Send on WhatsApp
       </button>
       <span className="small muted" role="status">
         {msg}

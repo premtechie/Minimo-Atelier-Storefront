@@ -208,7 +208,7 @@ export function BuyBox({ item, eyebrow, badge, title }: { item: BuyItem; eyebrow
     note,
     bulk: item.bulk,
   });
-  const addNow = () => add(line(), `${q} × ${item.name} added to your cart`);
+  const addNow = () => add(line());
   const unit = item.kind === "pack" ? "per guest" : "per piece";
   const next = q < LOW_N ? `Add ${LOW_N - q} more for ${pct(LOW_R)}% off.` : q < TOP_N ? `Add ${TOP_N - q} more for ${pct(TOP_R)}% off.` : "Best bulk price applied.";
   const save = item.price * q * rate;

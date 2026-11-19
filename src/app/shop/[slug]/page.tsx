@@ -3,8 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PackCard, ProductCard } from "@/components/cards";
 import { InnerHeader } from "@/components/header";
-import { Icon } from "@/components/icon";
 import { Offline } from "@/components/offline";
+import { SearchButton } from "@/components/search-sheet";
 import { getStore } from "@/lib/catalogue";
 import { BUDGET_BANDS, RG_TABS } from "@/lib/merch";
 import { featured, inSection } from "@/lib/store";
@@ -75,11 +75,7 @@ export default async function Collection({ params, searchParams }: { params: Pro
             <h1 className="m-col-h1">{title}</h1>
             <p className="m-col-desc">{c.desc}</p>
           </div>
-          <Link className="m-searchbtn" href="/search">
-            <Icon name="search" size={16} />
-            <span>Search gifts</span>
-            <kbd aria-hidden="true">/</kbd>
-          </Link>
+          <SearchButton />
         </div>
 
         <nav className="m-col-chips" aria-label="Price">

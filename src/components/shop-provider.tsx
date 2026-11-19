@@ -5,12 +5,12 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { addLine, cartTotals, type CartLine } from "@/lib/cart";
 import { Icon } from "./icon";
 
-type Toast = { id: number; text: string; href?: string; action?: string };
+type Toast = { id: number; text: string; href?: string; action?: string; out?: boolean };
 
 type Shop = {
   ready: boolean;
   cart: CartLine[];
-  add: (line: CartLine, message?: string) => void;
+  add: (line: CartLine, message?: string, link?: { href: string; label: string }) => void;
   setQty: (key: string, qty: number) => void;
   remove: (key: string) => void;
   replace: (lines: CartLine[]) => void;
@@ -69,17 +69,19 @@ export function ShopProvider({ children }: { children: ReactNode }) {
 
   const toast = useCallback((text: string, link?: { href: string; label: string }) => {
     const id = ++tid.current;
-    setToasts((t) => [...t.slice(-2), { id, text, href: link?.href, action: link?.label }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3600);
+    // One toast at a time, like the design: it fades after 3.6 s.
+    setToasts([{ id, text, href: link?.href, action: link?.label }]);
+    setTimeout(() => setToasts((t) => t.map((x) => (x.id === id ? { ...x, out: true } : x))), 3600);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3820);
   }, []);
 
   const value = useMemo<Shop>(
     () => ({
       ready,
       cart,
-      add: (line, message) => {
+      add: (line, message, link) => {
         save(addLine(cart, line));
-        toast(message ?? `${line.name} is in your cart`, { href: "/cart", label: "View cart" });
+        toast(message ?? "Added to cart", link ?? { href: "/cart", label: "Checkout" });
       },
       setQty: (key, qty) => save(cart.map((l) => (l.key === key ? { ...l, qty: Math.max(1, qty) } : l))),
       remove: (key) => save(cart.filter((l) => l.key !== key)),
@@ -94,7 +96,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
         else next.delete(id);
         setWish(next);
         write(WISH_KEY, [...next]);
-        if (name) toast(on ? `Saved ${name} to your wishlist` : `Removed ${name} from your wishlist`);
+        if (name) toast(on ? `Saved ${name}` : "Removed from saved");
       },
       toast,
     }),
@@ -104,19 +106,26 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={value}>
       {children}
-      <div className="m-toasts" aria-live="polite">
-        {toasts.map((t) => (
-          <div key={t.id} className="m-toast">
-            <Icon name="check" size={16} />
+      {toasts.map((t) => (
+        <div key={t.id} className={`dz d-toastbox ${t.out ? "is-out" : ""}`}>
+          <Link className="d-toast d-toast--mobile" href="/cart" role="status">
+            <Icon name="check" size={15} />
+            <span>{t.text}</span>
+            {t.href && <span className="d-toast-arrow">→</span>}
+          </Link>
+          <div className="d-toast d-toast--desktop" role="status">
             <span>{t.text}</span>
             {t.href && (
-              <Link href={t.href} className="m-toast-act">
-                {t.action}
+              <Link className="d-toast-link" href={t.href}>
+                {t.action} →
               </Link>
             )}
+            <button className="d-toast-x" onClick={() => setToasts([])} aria-label="Dismiss">
+              <Icon name="x" size={15} />
+            </button>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </Ctx.Provider>
   );
 }

@@ -10,4 +10,8 @@
 @import "../styles/design/curated.css";
 @import "../styles/design/cart.css";
 @import "../styles/design/visit.css";
+@import "../styles/design/menu.css";
+@import "../styles/design/search.css";
+@import "../styles/design/footer.css";
+@import "../styles/design/toast.css";
 @import "../styles/motion.css";

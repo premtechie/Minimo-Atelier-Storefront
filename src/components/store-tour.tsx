@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SHOP } from "@/lib/merch";
 import { waLink } from "@/lib/whatsapp";
-import { Icon } from "./icon";
+import { EIcon, Icon } from "./icon";
 
 /*
  * The store walk-through in the approved design's markup (its sv- classes are
@@ -99,7 +99,9 @@ export function StoreTour() {
             <i ref={bar} />
           </div>
           <button className="e-sv-full" onClick={() => setTour(true)} tabIndex={open ? 0 : -1}>
-            <Icon name="play" size={14} />
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 4.5v15l13-7.5z" fill="currentColor" />
+            </svg>
             Watch full screen
           </button>
         </div>
@@ -110,7 +112,7 @@ export function StoreTour() {
 }
 
 /** Full-screen, stories-style tour: a bar per chapter, tap sides to skip, hold to pause. */
-function FullTour({ onClose }: { onClose: () => void }) {
+export function FullTour({ onClose, onDetails }: { onClose: () => void; onDetails?: () => void }) {
   const box = useRef<HTMLDivElement>(null);
   const vid = useRef<HTMLVideoElement>(null);
   const bars = useRef<(HTMLElement | null)[]>([]);
@@ -228,17 +230,18 @@ function FullTour({ onClose }: { onClose: () => void }) {
       <Caption i={ch} className="e-sv-tour-cap" />
       <div className="e-sv-tour-cta">
         <a className="e-sv-btn" href={SHOP.mapsUrl} target="_blank" rel="noopener">
-          <Icon name="pin" size={18} /> Get directions
+          <EIcon name="pin" sm /> Get directions
         </a>
         <a className="e-sv-btn e-sv-btn--wa" href={waLink("Hi Minimo, I'd like to visit the store.")} target="_blank" rel="noopener">
-          <Icon name="wa" size={18} /> Plan a visit
+          <EIcon name="wa" sm /> Plan a visit
         </a>
       </div>
       <button
         className="e-sv-tour-more"
         onClick={() => {
           close();
-          setTimeout(() => document.getElementById("store-info")?.scrollIntoView({ behavior: "smooth" }), 400);
+          if (onDetails) onDetails();
+          else setTimeout(() => document.getElementById("store-info")?.scrollIntoView({ behavior: "smooth" }), 400);
         }}
       >
         Store details and hours <Icon name="chevR" size={16} />

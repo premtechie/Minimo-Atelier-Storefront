@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Allura, DM_Sans, Montserrat, Varela_Round } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { WaFab } from "@/components/wa-fab";
+import { SearchSheet } from "@/components/search-sheet";
 import { ShopProvider } from "@/components/shop-provider";
 import { SITE_URL } from "@/lib/whatsapp";
 import "./globals.css";
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {children}
           <Footer />
           <WaFab />
+          <SearchSheet />
         </ShopProvider>
       </body>
     </html>
