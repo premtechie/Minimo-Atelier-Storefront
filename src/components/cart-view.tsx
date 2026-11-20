@@ -9,6 +9,7 @@ import { OrderPlaced } from "./orders-view";
 import { inr, plural } from "@/lib/format";
 import type { LiteItem } from "@/lib/lite";
 import { Icon } from "./icon";
+import { fetchQuote, isPin, savePin, savedPin, shortDate, SPEED_NAME, type Quote, type Speed } from "@/lib/delivery";
 import { useShop } from "./shop-provider";
 
 /*
@@ -257,6 +258,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
       <Checkout
         open={sheet && live.length > 0}
         lines={live}
+        itemsTotal={t.total}
         coupon={coupon.trim()}
         giftNote={gift ? giftNote.trim() || "Make it a gift" : ""}
         onClose={() => setSheet(false)}
@@ -331,6 +333,7 @@ function Line({ l, href, cap, setQty, remove }: { l: CartLine; href: string; cap
 function Checkout({
   open,
   lines,
+  itemsTotal,
   coupon,
   giftNote,
   onClose,
@@ -338,6 +341,7 @@ function Checkout({
 }: {
   open: boolean;
   lines: CartLine[];
+  itemsTotal: number;
   coupon: string;
   giftNote: string;
   onClose: () => void;
@@ -349,6 +353,9 @@ function Checkout({
   const [addr, setAddr] = useState("");
   const [pin, setPin] = useState("");
   const [mob, setMob] = useState("");
+  // Courier prices (Velocity, through the admin) for Hyderabad and pan-India.
+  const [got, setGot] = useState<{ k: string; q: Quote } | null>(null);
+  const [speed, setSpeed] = useState<Speed>("standard");
   const [updates, setUpdates] = useState(true);
   const [err, setErr] = useState("");
   const [err2, setErr2] = useState("");
@@ -380,7 +387,34 @@ function Checkout({
   const needAddr = !pick;
   const needPin = del === "hyd" || del === "india";
   const d = DELIVERY.find((x) => x.id === del)!;
-  const when = pick || del === "flat" ? `Ready ${dayName(2)}` : pin.startsWith("500") ? `By ${dayName(3)}` : "In 4–7 days";
+
+  const pieceKey = lines.map((l) => l.parts.map((p) => `${p.sku}x${p.qty * l.qty}`).join(",")).join(",");
+  const pinOk = needPin && isPin(pin) && (del !== "hyd" || pin.startsWith("500"));
+  const quoteKey = `${pin}|${pieceKey}`;
+  const quote = pinOk && got?.k === quoteKey ? got.q : null;
+  useEffect(() => {
+    if (!pinOk) return;
+    let live = true;
+    const pieces = lines.flatMap((l) => l.parts.map((p) => ({ sku: p.sku, qty: p.qty * l.qty })));
+    void fetchQuote(pin, pieces).then((q) => live && setGot({ k: quoteKey, q }));
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinOk, quoteKey]);
+  const priced = needPin && quote?.available ? quote : null;
+  const options = priced ? [priced.standard, priced.express].filter((o) => o !== null) : [];
+  const chosen = options.find((o) => o.speed === speed) ?? options[0] ?? null;
+  const checking = pinOk && quote === null;
+  const ship = chosen?.price ?? 0;
+  const when =
+    pick || del === "flat"
+      ? `Ready ${dayName(2)}`
+      : chosen && shortDate(chosen.by)
+        ? `By ${shortDate(chosen.by)}`
+        : pin.startsWith("500")
+          ? `By ${dayName(3)}`
+          : "In 4–7 days";
   const where = pick ? "Pickup at our store" : del === "flat" ? "To your flat in Honer Vivantis" : `Delivering to ${pin}`;
 
   const pos = (p: 1 | 2) => (p === step ? "on" : p < step ? "left" : "right");
@@ -405,6 +439,7 @@ function Checkout({
           updates,
           gift_note: giftNote,
           coupon,
+          ...(chosen ? { speed: chosen.speed } : {}),
           lines: lines.map((l) => ({ name: lineName(l), qty: l.qty, parts: l.parts, note: l.note, detail: l.kind === "build" ? l.detail : undefined, bulk: l.bulk !== false })),
         }),
       });
@@ -425,6 +460,9 @@ function Checkout({
     if (needAddr && addr.trim().length < 4) return setErr(del === "flat" ? "Add your tower and flat number." : "Add your delivery address.");
     if (needPin && !/^\d{6}$/.test(pin)) return setErr("Enter a 6-digit PIN code.");
     if (del === "hyd" && !pin.startsWith("500")) return setErr("That PIN is outside Hyderabad. Pick Pan-India instead.");
+    if (needPin && checking) return setErr("Checking delivery prices…");
+    if (needPin && quote && !quote.available && quote.reason === "not_serviceable") return setErr("Couriers don't reach this PIN code yet. Message us on WhatsApp and we'll find a way.");
+    if (needPin) savePin(pin);
     setErr("");
     setStep(2);
   };
@@ -459,6 +497,8 @@ function Checkout({
                       onChange={() => {
                         setDel(o.id);
                         setErr("");
+                        // The last pincode checked on a product page fills in here.
+                        if (!pin && (o.id === "hyd" || o.id === "india")) setPin(savedPin());
                       }}
                     />
                     <span>{o.label}</span>
@@ -491,6 +531,29 @@ function Checkout({
                   <Icon name="pin" size={18} />
                 </span>
               </div>
+              {needPin && (checking || options.length > 0) && (
+                <div className="d-ship-opts" role="radiogroup" aria-label="Delivery speed" aria-busy={checking}>
+                  {checking ? (
+                    <>
+                      <span className="d-pin-skel" />
+                      <span className="d-pin-skel d-pin-skel--short" />
+                    </>
+                  ) : (
+                    options.map((o) => (
+                      <label key={o.speed} className="d-ship-opt">
+                        <input type="radio" name="co-speed" value={o.speed} checked={chosen?.speed === o.speed} onChange={() => setSpeed(o.speed)} />
+                        <span className="d-ship-opt-body">
+                          <span>
+                            {SPEED_NAME[o.speed]} {o.speed === "express" && <Icon name="sparkle" size={12} />}
+                          </span>
+                          {shortDate(o.by) && <small>Arrives by {shortDate(o.by)}</small>}
+                        </span>
+                        <span className="d-ship-opt-price">{inr(o.price)}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              )}
               <p className="d-precheckout-err" aria-live="polite">
                 {err}
               </p>
@@ -530,7 +593,7 @@ function Checkout({
                       </p>
                       <ul className="d-pc-tags">
                         <li>
-                          <Icon name="check" size={11} /> {d.tag}
+                          <Icon name="check" size={11} /> {chosen ? `${SPEED_NAME[chosen.speed]} · ${inr(chosen.price)}` : d.tag}
                         </li>
                         <li>
                           <Icon name="tag" size={11} /> Wrapped &amp; tagged
@@ -561,6 +624,11 @@ function Checkout({
                   <p className="d-precheckout-err" aria-live="polite">
                     {err2}
                   </p>
+                  {ship > 0 && (
+                    <p className="d-ship-note">
+                      Total {inr(itemsTotal + ship)}, with {inr(ship)} {SPEED_NAME[chosen!.speed].toLowerCase()} delivery
+                    </p>
+                  )}
                   <div className="d-pc-actions">
                     <button className="d-sum-cta d-precheckout-cta" onClick={() => void place()} disabled={busy} aria-busy={busy}>
                       {busy ? "Placing your order…" : "Place order"} {!busy && <Icon name="arrowR" size={16} />}

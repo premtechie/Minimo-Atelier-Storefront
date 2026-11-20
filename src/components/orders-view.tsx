@@ -538,7 +538,7 @@ export function OrderDetail({ number }: { number: string }) {
             <dl className="e-od-sum">
               <dt>Items</dt>
               <dd>{inr(o.items_total)}</dd>
-              <dt>{pick ? "Pickup" : "Delivery"}</dt>
+              <dt>{pick ? "Pickup" : o.ship_speed === "express" ? "Express delivery" : o.ship_speed === "standard" ? "Standard delivery" : "Delivery"}</dt>
               <dd>{o.shipping ? inr(o.shipping) : "Free"}</dd>
               <dt className="e-od-tot">Total</dt>
               <dd className="e-od-tot">{inr(o.total)}</dd>

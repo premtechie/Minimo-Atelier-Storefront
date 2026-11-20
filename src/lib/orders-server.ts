@@ -9,9 +9,9 @@ import { adminFetch } from "./catalogue";
  */
 
 const hits = new Map<string, number[]>();
-/** A light per-visitor brake on placing orders (best effort, per server). */
-export function tooMany(req: NextRequest, limit = 8, windowMs = 10 * 60_000) {
-  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
+/** A light per-visitor brake on placing orders, or on another action named by `bucket` (best effort, per server). */
+export function tooMany(req: NextRequest, limit = 8, windowMs = 10 * 60_000, bucket = "orders") {
+  const ip = `${bucket}:${(req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local"}`;
   const now = Date.now();
   const list = (hits.get(ip) ?? []).filter((t) => now - t < windowMs);
   list.push(now);
