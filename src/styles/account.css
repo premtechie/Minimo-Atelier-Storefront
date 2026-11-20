@@ -145,6 +145,7 @@
 .d-mnav-links .d-mnav-signin { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 16px 0; border: 0; border-bottom: 1px solid var(--line); background: none; font: 400 22px/1.2 var(--font-display); color: var(--brand); text-align: left; cursor: pointer; }
 .d-mnav-links .d-mnav-signin svg { color: var(--mm-brand-soft); }
 .m-hhome-left .a-avatar, .m-hhome-right .a-avatar, .m-hin-icons .a-avatar { width: 28px; height: 28px; font-size: 12px; }
-/* Firebase's invisible reCAPTCHA: no layout, and its corner badge hidden (the sheet names reCAPTCHA instead, as Google allows). */
-.a-captcha { height: 0; overflow: hidden; }
-.grecaptcha-badge { visibility: hidden !important; }
+/* Sign-in with Google or an email link (when the shop uses Firebase). */
+.a-google { margin-top: 0; gap: 10px; }
+.a-or { display: flex; align-items: center; gap: 12px; margin: 14px 0; font-size: 12px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 1.2px; }
+.a-or::before, .a-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
