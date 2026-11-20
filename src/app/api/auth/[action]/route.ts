@@ -10,6 +10,8 @@ const NO_STORE = { "cache-control": "private, no-store" };
 // POST /api/auth/verify  {phone, code}  → signs in; the session goes in an httpOnly cookie
 //                        or, with Firebase: {firebase_token} → signs in, or { needs_profile, email } the first
 //                        time; then {firebase_token, first_name, last_name, phone} makes the account
+// POST /api/auth/otp     {email}        → with Firebase and email_code: emails a 6-digit code
+// POST /api/auth/verify  {email, code}  → the same as firebase_token, first time included
 // POST /api/auth/logout                 → signs this browser out
 export async function GET(req: NextRequest, ctx: RouteContext<"/api/auth/[action]">) {
   const { action } = await ctx.params;
@@ -40,12 +42,15 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/auth/[actio
   if (tooMany(req, action === "otp" ? 10 : 30)) return NextResponse.json({ error: { code: "slow_down", message: "Too many tries from here. Please wait a few minutes." } }, { status: 429 });
   const b = await readBody(req);
   if (!b) return bad();
-  if (action === "otp") return passOn(await callAdmin("/auth/otp", { phone: String(b.phone ?? "") }));
+  if (action === "otp") return passOn(await callAdmin("/auth/otp", typeof b.email === "string" ? { email: b.email.slice(0, 254) } : { phone: String(b.phone ?? "") }));
   const str = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : undefined);
+  const profile = { phone: str(b.phone, 20), first_name: str(b.first_name, 40), last_name: str(b.last_name, 40) };
   const proof =
     typeof b.firebase_token === "string"
-      ? { firebase_token: b.firebase_token.slice(0, 4096), phone: str(b.phone, 20), first_name: str(b.first_name, 40), last_name: str(b.last_name, 40) }
-      : { phone: String(b.phone ?? ""), code: String(b.code ?? "") };
+      ? { firebase_token: b.firebase_token.slice(0, 4096), ...profile }
+      : typeof b.email === "string"
+        ? { email: b.email.slice(0, 254), code: String(b.code ?? "").slice(0, 12), ...profile }
+        : { phone: String(b.phone ?? ""), code: String(b.code ?? "") };
   const out = await callAdmin("/auth/verify", { ...proof, device: deviceName(req.headers.get("user-agent") ?? "") });
   if (!out || out.status !== 200) return passOn(out);
   // A first Google or email sign-in: no session yet, the sheet asks for name and mobile.

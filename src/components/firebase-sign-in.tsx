@@ -5,18 +5,20 @@ import { currentToken, finishEmailLink, firebaseConfigured, firebaseMessage, fir
 import { accountPost as post, type Account } from "./account-provider";
 
 /*
- * Sign-in through Firebase (free, no SMS): "Continue with Google", or a
- * sign-in link by email. The first time, the shopper adds their name and
+ * Sign-in through Firebase (free, no SMS): "Continue with Google", or by
+ * email: a 6-digit code our admin emails (when it has Resend set up), else a
+ * Firebase sign-in link. The first time, the shopper adds their name and
  * mobile, which orders and delivery updates use. Firebase only proves the
  * email; our server checks its token and keeps the session.
  */
-type Step = "start" | "sent" | "confirm" | "finishing" | "profile";
+type Step = "start" | "sent" | "code" | "confirm" | "finishing" | "profile";
 type Verified = { account?: Account; needs_profile?: boolean; email?: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESEND_S = 30;
+const CODE_DIGITS = 6;
 
-export function FirebaseSignIn({ onDone, autoFocus = true, handleLink = false }: { onDone: (a: Account) => void; autoFocus?: boolean; handleLink?: boolean }) {
+export function FirebaseSignIn({ onDone, autoFocus = true, handleLink = false, emailCode = false }: { onDone: (a: Account) => void; autoFocus?: boolean; handleLink?: boolean; emailCode?: boolean }) {
   const linkOpen = handleLink && isEmailLink();
   // Opened from the emailed link: finish straight away when this browser remembers the email, else ask for it.
   const [email, setEmail] = useState(() => (linkOpen ? rememberedEmail() : ""));
@@ -27,7 +29,9 @@ export function FirebaseSignIn({ onDone, autoFocus = true, handleLink = false }:
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
   const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
   const emailRef = useRef<HTMLInputElement>(null);
+  const codeRef = useRef<HTMLInputElement>(null);
   const firstRef = useRef<HTMLInputElement>(null);
   const started = useRef(false);
 
@@ -38,13 +42,14 @@ export function FirebaseSignIn({ onDone, autoFocus = true, handleLink = false }:
   }, [wait]);
   useEffect(() => {
     if (!autoFocus) return;
-    const t = setTimeout(() => (step === "profile" ? firstRef.current : step === "start" || step === "confirm" ? emailRef.current : null)?.focus({ preventScroll: true }), 120);
+    const t = setTimeout(() => (step === "profile" ? firstRef.current : step === "code" ? codeRef.current : step === "start" || step === "confirm" ? emailRef.current : null)?.focus({ preventScroll: true }), 120);
     return () => clearTimeout(t);
   }, [step, autoFocus]);
 
-  /** Hands Firebase's token to our server: signed in, or asked for name and mobile. */
-  const exchange = async (token: string, profile?: Record<string, string>) => {
-    const res = await post<Verified>("/api/auth/verify", { firebase_token: token, ...profile });
+  /** Hands the proof (Firebase's token, or the emailed code) to our server: signed in, or asked for name and mobile. */
+  const exchange = async (token: string | { email: string; code: string }, profile?: Record<string, string>) => {
+    const proof = typeof token === "string" ? { firebase_token: token } : token;
+    const res = await post<Verified>("/api/auth/verify", { ...proof, ...profile });
     if (!res.ok) {
       setErr(res.message);
       return false;
@@ -55,7 +60,7 @@ export function FirebaseSignIn({ onDone, autoFocus = true, handleLink = false }:
       return true;
     }
     if (res.data.account) {
-      await firebaseSignOut();
+      if (typeof token === "string") await firebaseSignOut();
       onDone(res.data.account);
     }
     return true;
@@ -107,6 +112,16 @@ export function FirebaseSignIn({ onDone, autoFocus = true, handleLink = false }:
     if (!firebaseConfigured()) return setErr("Sign-in isn't set up on this site yet. Please message us on WhatsApp.");
     setBusy(true);
     setErr("");
+    if (emailCode) {
+      const res = await post<{ resend_in?: number }>("/api/auth/otp", { email: addr });
+      setBusy(false);
+      if (!res.ok) return setErr(res.message);
+      setEmail(addr);
+      setCode("");
+      setWait(res.data.resend_in || RESEND_S);
+      setStep("code");
+      return;
+    }
     try {
       await sendEmailLink(addr);
       setEmail(addr);
@@ -118,6 +133,17 @@ export function FirebaseSignIn({ onDone, autoFocus = true, handleLink = false }:
     setBusy(false);
   };
 
+  const checkCode = async (c = code) => {
+    if (c.length !== CODE_DIGITS) {
+      setErr(`Enter the ${CODE_DIGITS}-digit code from the email.`);
+      return codeRef.current?.focus();
+    }
+    setBusy(true);
+    setErr("");
+    await exchange({ email, code: c });
+    setBusy(false);
+  };
+
   const saveProfile = async () => {
     if (!first.trim()) {
       setErr("Add your first name.");
@@ -126,6 +152,10 @@ export function FirebaseSignIn({ onDone, autoFocus = true, handleLink = false }:
     if (!/^[6-9]\d{9}$/.test(phone)) return setErr("Enter a valid 10-digit mobile number.");
     setBusy(true);
     setErr("");
+    if (emailCode && code) {
+      await exchange({ email, code }, { first_name: first.trim(), last_name: last.trim(), phone });
+      return setBusy(false);
+    }
     try {
       const token = await currentToken();
       if (!token) {
@@ -205,6 +235,52 @@ export function FirebaseSignIn({ onDone, autoFocus = true, handleLink = false }:
       </form>
     );
 
+  if (step === "code")
+    return (
+      <form
+        className="a-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void checkCode();
+        }}
+      >
+        <p className="a-sent">
+          We emailed a {CODE_DIGITS}-digit code to <b>{email}</b>. Check Spam if it isn&apos;t there in a minute.{" "}
+          <button type="button" className="a-link" onClick={() => (setStep("start"), setErr(""))}>
+            Change
+          </button>
+        </p>
+        <input
+          ref={codeRef}
+          className="a-input a-code-one"
+          value={code}
+          onChange={(e) => {
+            const v = e.target.value.replace(/\D/g, "").slice(0, CODE_DIGITS);
+            setCode(v);
+            setErr("");
+            if (v.length === CODE_DIGITS && !busy) void checkCode(v);
+          }}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          placeholder={"•".repeat(CODE_DIGITS)}
+          aria-label={`${CODE_DIGITS}-digit code`}
+        />
+        {errLine}
+        <button className="a-btn" style={{ marginTop: 6 }} disabled={busy} aria-busy={busy}>
+          {busy ? "Checking…" : "Sign in"}
+        </button>
+        <p className="a-resend">
+          {wait > 0 ? (
+            `Resend in ${wait}s`
+          ) : (
+            <button type="button" className="a-link" onClick={() => void sendLink()} disabled={busy}>
+              Resend code
+            </button>
+          )}
+        </p>
+      </form>
+    );
+
   if (step === "sent")
     return (
       <div className="a-form">
@@ -270,7 +346,7 @@ export function FirebaseSignIn({ onDone, autoFocus = true, handleLink = false }:
       />
       {errLine}
       <button className="a-btn" style={{ marginTop: 6 }} disabled={busy} aria-busy={busy}>
-        {busy ? (confirming ? "Signing in…" : "Sending…") : confirming ? "Finish signing in" : "Email me a sign-in link"}
+        {busy ? (confirming ? "Signing in…" : "Sending…") : confirming ? "Finish signing in" : emailCode ? "Email me a code" : "Email me a sign-in link"}
       </button>
     </form>
   );

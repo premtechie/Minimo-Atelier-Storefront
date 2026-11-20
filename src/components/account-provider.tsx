@@ -18,7 +18,7 @@ import { useShop } from "./shop-provider";
 
 export type Account = { phone: string; email?: string | null; first_name: string; last_name: string; name: string; member_since: string };
 /** provider "firebase": Google or an email link through Firebase; "minimo" (or missing): a code to the mobile. */
-export type AuthConfig = { available: boolean; test_mode: boolean; provider?: "firebase" | "minimo"; otp_digits: number; resend_seconds: number };
+export type AuthConfig = { available: boolean; test_mode: boolean; provider?: "firebase" | "minimo"; email_code?: boolean; otp_digits: number; resend_seconds: number };
 
 type Open = { reason?: "checkout" | "account" | "wishlist"; then?: () => void };
 type Ctx = {
@@ -208,7 +208,7 @@ type FlowProps = { config: AuthConfig; onDone: (a: Account) => void; autoFocus?:
 
 /** The sign-in steps for this shop's provider. Used by the sheet and by the signed-out account page. */
 export function SignInFlow(props: FlowProps) {
-  return props.config.provider === "firebase" ? <FirebaseSignIn onDone={props.onDone} autoFocus={props.autoFocus} handleLink={props.handleLink} /> : <PhoneSignIn {...props} />;
+  return props.config.provider === "firebase" ? <FirebaseSignIn onDone={props.onDone} autoFocus={props.autoFocus} handleLink={props.handleLink} emailCode={!!props.config.email_code} /> : <PhoneSignIn {...props} />;
 }
 
 /** Mobile → code → (first time) name. */
