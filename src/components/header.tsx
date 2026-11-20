@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Icon, type IconName } from "./icon";
 import { useShop } from "./shop-provider";
+import { useAccount } from "./account-provider";
 import { waLink } from "@/lib/whatsapp";
 import { FullTour } from "./store-tour";
 import { openSearch } from "./search-sheet";
@@ -37,8 +38,36 @@ const MENU: { href: string; label: string }[] = [
   { href: "/bulk-orders", label: "Bulk & school orders" },
   { href: "/visit-our-store", label: "Visit our store" },
   { href: "/orders", label: "My orders" },
+  { href: "/wishlist", label: "Wishlist" },
   { href: "/cart", label: "Cart" },
 ];
+
+/**
+ * The person button, as on Bluebee: signed out it opens the sign-in sheet;
+ * signed in it is a filled circle with the first letter and goes to the account.
+ */
+export function AccountButton({ className = "" }: { className?: string }) {
+  const { status, account, required, openSignIn } = useAccount();
+  if (status === "signed_in" && account) {
+    const letter = (account.first_name || account.name || "").slice(0, 1).toUpperCase();
+    return (
+      <Link href="/account" className={className} aria-label={account.first_name ? `Account, ${account.name}` : "Account"} title="Your account">
+        {letter ? <span className="a-avatar">{letter}</span> : <Icon name="user" size={20} />}
+      </Link>
+    );
+  }
+  if (!required)
+    return (
+      <Link href="/orders" className={className} aria-label="My orders" title="My orders">
+        <Icon name="user" size={20} />
+      </Link>
+    );
+  return (
+    <button type="button" className={className} aria-label="Sign in" title="Sign in" onClick={() => openSignIn({ reason: "account" })}>
+      <Icon name="user" size={20} />
+    </button>
+  );
+}
 
 function Logo({ className }: { className?: string }) {
   return (
@@ -104,6 +133,7 @@ function Menu({ open, onClose }: { open: boolean; onClose: () => void }) {
         </button>
       </div>
       <nav className="d-mnav-links" aria-label="Menu">
+        <MenuAccount onClose={onClose} />
         {MENU.map((m) => (
           <Link key={m.href} href={m.href} onClick={onClose}>
             {m.label}
@@ -119,6 +149,24 @@ function Menu({ open, onClose }: { open: boolean; onClose: () => void }) {
       </div>
     </div>,
     document.body,
+  );
+}
+
+function MenuAccount({ onClose }: { onClose: () => void }) {
+  const { status, account, required, openSignIn } = useAccount();
+  if (status === "signed_in" && account)
+    return (
+      <Link href="/account" onClick={onClose}>
+        {account.first_name ? `Hi, ${account.first_name}` : "My account"}
+        <Icon name="chevR" size={18} />
+      </Link>
+    );
+  if (!required) return null;
+  return (
+    <button type="button" className="d-mnav-signin" onClick={() => (onClose(), openSignIn({ reason: "account" }))}>
+      Sign in
+      <Icon name="chevR" size={18} />
+    </button>
   );
 }
 
@@ -145,6 +193,7 @@ export function HomeHeader() {
         </Link>
         <Logo className="m-logo--home" />
         <div className="m-hhome-right">
+          <AccountButton className="m-iconbtn m-iconbtn--card" />
           <WishButton className="m-iconbtn m-iconbtn--card m-only-desk" />
           <CartButton className="m-iconbtn m-iconbtn--card" />
           <button className="m-iconbtn m-iconbtn--card m-only-phone" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}>
@@ -194,9 +243,7 @@ export function InnerHeader() {
             >
               <Icon name="search" size={20} />
             </Link>
-            <Link href="/orders" className="m-md-only" aria-label="My orders" title="My orders">
-              <Icon name="user" size={20} />
-            </Link>
+            <AccountButton className="m-md-only m-hin-acct" />
             <WishButton className="" />
             <CartButton className="" />
             <button className="m-hin-menu" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}>

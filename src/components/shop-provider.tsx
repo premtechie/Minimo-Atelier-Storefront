@@ -18,6 +18,8 @@ type Shop = {
   count: number;
   wish: Set<string>;
   toggleWish: (id: string, name?: string) => void;
+  /** Replaces the saved list (signing in merges the account's list in). */
+  setWishAll: (ids: string[]) => void;
   toast: (text: string, link?: { href: string; label: string }) => void;
 };
 
@@ -96,7 +98,14 @@ export function ShopProvider({ children }: { children: ReactNode }) {
         else next.delete(id);
         setWish(next);
         write(WISH_KEY, [...next]);
+        // A signed-in shopper's account keeps the list too (account-provider.tsx).
+        window.dispatchEvent(new CustomEvent("mm:wish", { detail: { id, on } }));
         if (name) toast(on ? `Saved ${name}` : "Removed from saved");
+      },
+      setWishAll: (ids) => {
+        const next = new Set(ids);
+        setWish(next);
+        write(WISH_KEY, [...next]);
       },
       toast,
     }),

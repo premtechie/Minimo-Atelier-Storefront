@@ -34,7 +34,7 @@ export async function relay(path: string, body: unknown) {
     if (!res.ok) {
       const err = (data as { error?: { code?: string; message?: string } }).error;
       // The admin's own wording is written for shoppers; anything else gets a plain line.
-      const known = res.status === 409 || res.status === 422 || res.status === 404;
+      const known = res.status === 409 || res.status === 422 || res.status === 404 || res.status === 401 || res.status === 403;
       return NextResponse.json(
         { error: { code: err?.code ?? "unavailable", message: known && err?.message ? err.message : "We couldn't reach the shop just now. Please try again in a minute." } },
         { status: known ? res.status : 503, headers: NO_STORE },

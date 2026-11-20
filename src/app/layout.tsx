@@ -4,6 +4,7 @@ import { Footer } from "@/components/footer";
 import { WaFab } from "@/components/wa-fab";
 import { SearchSheet } from "@/components/search-sheet";
 import { ShopProvider } from "@/components/shop-provider";
+import { AccountProvider } from "@/components/account-provider";
 import { SITE_URL } from "@/lib/whatsapp";
 import "./globals.css";
 
@@ -34,13 +35,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en-IN" className={`${display.variable} ${ui.variable} ${badge.variable} ${script.variable}`}>
       <body>
         <ShopProvider>
-          <a className="m-skip" href="#main">
-            Skip to content
-          </a>
-          {children}
-          <Footer />
-          <WaFab />
-          <SearchSheet />
+          <AccountProvider>
+            <a className="m-skip" href="#main">
+              Skip to content
+            </a>
+            {children}
+            <Footer />
+            <WaFab />
+            <SearchSheet />
+          </AccountProvider>
         </ShopProvider>
       </body>
     </html>

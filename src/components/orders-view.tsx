@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { Icon, type IconName } from "./icon";
 import { SafeImg } from "./safe-img";
 import { useShop } from "./shop-provider";
+import { useAccount } from "./account-provider";
 import { inr, plural } from "@/lib/format";
 import { waLink } from "@/lib/whatsapp";
 import {
@@ -59,39 +60,54 @@ function snapshot() {
 const EMPTY: SavedOrder[] = [];
 
 /** The orders saved on this phone, refreshed from the shop. */
-function useOrders() {
+export function useOrders() {
   const saved = useSyncExternalStore(subscribe, snapshot, () => EMPTY);
   const mounted = useSyncExternalStore(noop, () => true, () => false);
   const [state, setState] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const asked = useRef("");
+  const { status: auth } = useAccount();
+  const signedIn = auth === "signed_in";
 
   const refresh = useCallback(async () => {
-    const list = savedOrders();
-    if (!list.length) return setState("ok");
+    // Orders placed on this phone carry their own secret; a signed-in shopper's
+    // account brings every order placed with their number, from any device.
+    const list = savedOrders().filter((o) => o.token);
+    if (!list.length && !signedIn) return setState("ok");
     setState((s) => (s === "ok" ? s : "loading"));
     try {
-      const res = await fetch("/api/orders/status", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ orders: list.map((o) => ({ number: o.number, token: o.token })) }),
-      });
-      if (!res.ok) throw new Error(String(res.status));
-      const { orders } = (await res.json()) as { orders: Order[] };
-      const by = new Map(orders.map((o) => [o.number, o]));
-      saveOrders(savedOrders().map((o) => (by.has(o.number) ? { ...o, order: by.get(o.number) } : o)));
+      const [mine, theirs] = await Promise.all([
+        list.length
+          ? fetch("/api/orders/status", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ orders: list.map((o) => ({ number: o.number, token: o.token })) }),
+            }).then((res) => {
+              if (!res.ok) throw new Error(String(res.status));
+              return res.json() as Promise<{ orders: Order[] }>;
+            })
+          : { orders: [] as Order[] },
+        signedIn
+          ? fetch("/api/account/orders", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }).then((res) => (res.ok ? (res.json() as Promise<{ orders: Order[] }>) : { orders: [] as Order[] }))
+          : { orders: [] as Order[] },
+      ]);
+      const by = new Map([...theirs.orders, ...mine.orders].map((o) => [o.number, o]));
+      const now = savedOrders().filter((o) => o.token || signedIn);
+      const known = new Set(now.map((o) => o.number));
+      const extra: SavedOrder[] = theirs.orders.filter((o) => !known.has(o.number)).map((o) => ({ number: o.number, token: "", at: Date.parse(o.placed_at), order: o }));
+      saveOrders([...now.map((o) => (by.has(o.number) ? { ...o, order: by.get(o.number) } : o)), ...extra].sort((a, b) => b.at - a.at));
       setState("ok");
     } catch {
       setState("error");
     }
-  }, []);
+  }, [signedIn]);
 
   useEffect(() => {
-    if (!mounted) return;
-    const key = saved.map((o) => o.number).join(",");
+    if (!mounted || auth === "loading") return;
+    const key = `${auth}:${saved.map((o) => o.number).join(",")}`;
     if (asked.current === key) return;
     asked.current = key;
     void refresh();
-  }, [mounted, saved, refresh]);
+  }, [mounted, saved, refresh, auth]);
 
   // Keep an open page current while the shop works on the order.
   useEffect(() => {
@@ -299,12 +315,28 @@ export function OrdersList() {
           </div>
         )}
       </div>
-      {mounted && <p className="e-od-note">Orders placed on this phone show here. For an order placed elsewhere, message us on WhatsApp.</p>}
+      {mounted && <OrdersNote />}
     </div>
   );
 }
 
-function OrderCard({ s }: { s: SavedOrder }) {
+function OrdersNote() {
+  const { status: auth, required, openSignIn } = useAccount();
+  if (auth === "signed_in") return <p className="e-od-note">Every order placed with your number shows here, from any device.</p>;
+  if (required)
+    return (
+      <p className="e-od-note">
+        Orders placed on this phone show here.{" "}
+        <button className="a-link" onClick={() => openSignIn({ reason: "account" })}>
+          Sign in
+        </button>{" "}
+        to see every order placed with your number.
+      </p>
+    );
+  return <p className="e-od-note">Orders placed on this phone show here. For an order placed elsewhere, message us on WhatsApp.</p>;
+}
+
+export function OrderCard({ s }: { s: SavedOrder }) {
   const o = s.order!;
   const st = steps(o);
   const [label, cls] = status(o);
@@ -421,7 +453,9 @@ export function OrderDetail({ number }: { number: string }) {
     setBusy(true);
     setErr("");
     try {
-      const res = await fetch("/api/orders/cancel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ number: s.number, token: s.token }) });
+      const res = s.token
+        ? await fetch("/api/orders/cancel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ number: s.number, token: s.token }) })
+        : await fetch("/api/account/order-cancel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ number: s.number }) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error?.message || "We couldn't cancel it just now. Please message us on WhatsApp.");
       saveOrders(savedOrders().map((x) => (x.number === s.number ? { ...x, order: data.order } : x)));
