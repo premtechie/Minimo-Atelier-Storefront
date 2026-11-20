@@ -148,6 +148,7 @@
 .d-pin-date { margin: 0px; display: flex; align-items: center; gap: 6px; min-width: 0px; font-size: 13px; color: var(--fg-soft); }
 .d-pin-date > svg { color: var(--mm-brand-soft); flex-shrink: 0; }
 .d-pin-date strong { font-weight: 600; color: var(--brand); font-variant-numeric: tabular-nums; }
+.d-pin-by { color: var(--fg-muted, var(--fg-soft)); }
 @media (prefers-reduced-motion: reduce) {
   .d-pin-btn:active:not(:disabled) { transform: none; }
 }

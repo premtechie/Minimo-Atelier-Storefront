@@ -8,7 +8,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchQuote, isPin, savePin, savedPin, shortDate, type Piece, type Quote } from "@/lib/delivery";
+import { etaText, fetchQuote, isPin, savePin, savedPin, shortDate, type Piece, type Quote } from "@/lib/delivery";
 import { inr } from "@/lib/format";
 import { Icon } from "./icon";
 import { waLink } from "@/lib/whatsapp";
@@ -180,13 +180,8 @@ export function DeliveryCheck({ pieces }: { pieces: Piece[] }) {
                 <p className="d-pin-date">
                   <Icon name={o.speed === "express" ? "sparkle" : "truck"} size={16} />
                   <span>
-                    <strong>{o.speed === "express" ? "Express" : "Standard"}</strong>
-                    {shortDate(o.by) ? (
-                      <>
-                        {" "}
-                        by <strong>{shortDate(o.by)}</strong>
-                      </>
-                    ) : null}
+                    <strong>{o.speed === "express" ? "Express" : "Standard"}</strong> · {etaText(o, shown)}
+                    {shortDate(o.by) ? <span className="d-pin-by"> · by {shortDate(o.by)}</span> : null}
                   </span>
                 </p>
                 <span className="d-pin-pill">{inr(o.price)}</span>
