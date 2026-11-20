@@ -14,6 +14,8 @@ export type Order = {
   number: string;
   placed_at: string;
   status: OrderStatus;
+  /** Set when the shop confirms stock (admin "Confirm order"); older admins leave it out. */
+  confirmed_at?: string | null;
   paid_at: string | null;
   packed_at: string | null;
   shipped_at: string | null;
@@ -82,7 +84,7 @@ export function steps(o: Order): Step[] {
   const pick = o.delivery === "pickup";
   const s: Step[] = [
     { key: "placed", title: "Order placed", done: `We have your order and ${o.phone ? `updates go to ${fmtPhone(o.phone)}` : "it is saved on this phone"}.`, wait: "", icon: "bag", day: 0, at: o.placed_at },
-    { key: "confirmed", title: "Order confirmed", done: "Every piece is in stock and set aside for you.", wait: "We check every piece is in stock, usually within a few hours.", icon: "check", day: 0, at: o.paid_at },
+    { key: "confirmed", title: "Order confirmed", done: "Every piece is in stock and set aside for you.", wait: "We check every piece is in stock, usually within a few hours.", icon: "check", day: 0, at: o.confirmed_at ?? o.paid_at },
     { key: "paid", title: "Payment received", done: `${inrPlain(o.total)} paid.`, wait: "We send you a secure UPI payment link once your order is confirmed.", icon: "tag", day: 0, at: o.paid_at },
     { key: "packed", title: "Packed & wrapped", done: o.gift_note ? "Wrapped, tagged and ready." : "Packed with a wish tag on every bag.", wait: "We pack and tag each bag by hand.", icon: "gift", day: 1, at: o.packed_at },
   ];
@@ -111,6 +113,8 @@ export function current(o: Order) {
       return o.delivery === "pickup" ? 4 : 3;
     case "shipped":
       return last;
+    case "ordered":
+      return o.confirmed_at ? 1 : 0;
     default:
       return 0;
   }
