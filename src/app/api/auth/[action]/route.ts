@@ -6,14 +6,15 @@ const NO_STORE = { "cache-control": "private, no-store" };
 
 // GET  /api/auth/config  → whether sign-in is on (and so whether checkout needs it)
 // GET  /api/auth/me      → { account } for this browser, or { account: null }
-// POST /api/auth/otp     {phone}        → sends a 4-digit code
+// POST /api/auth/otp     {phone}        → sends a code (with Firebase: logs the request; the browser asks Firebase)
 // POST /api/auth/verify  {phone, code}  → signs in; the session goes in an httpOnly cookie
+//                        (or {phone, firebase_token} when the admin's provider is Firebase)
 // POST /api/auth/logout                 → signs this browser out
 export async function GET(req: NextRequest, ctx: RouteContext<"/api/auth/[action]">) {
   const { action } = await ctx.params;
   if (action === "config") {
     const out = await callAdmin("/auth/config");
-    if (!out || out.status !== 200) return NextResponse.json({ available: false, test_mode: false, otp_digits: 4, resend_seconds: 30 }, { headers: NO_STORE });
+    if (!out || out.status !== 200) return NextResponse.json({ available: false, test_mode: false, provider: "minimo", otp_digits: 4, resend_seconds: 30 }, { headers: NO_STORE });
     return NextResponse.json(out.data, { headers: NO_STORE });
   }
   if (action === "me") {
@@ -39,7 +40,8 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/auth/[actio
   const b = await readBody(req);
   if (!b) return bad();
   if (action === "otp") return passOn(await callAdmin("/auth/otp", { phone: String(b.phone ?? "") }));
-  const out = await callAdmin("/auth/verify", { phone: String(b.phone ?? ""), code: String(b.code ?? ""), device: deviceName(req.headers.get("user-agent") ?? "") });
+  const proof = typeof b.firebase_token === "string" ? { firebase_token: b.firebase_token.slice(0, 4096) } : { code: String(b.code ?? "") };
+  const out = await callAdmin("/auth/verify", { phone: String(b.phone ?? ""), ...proof, device: deviceName(req.headers.get("user-agent") ?? "") });
   if (!out || out.status !== 200) return passOn(out);
   const { session, account, created } = out.data as { session: string; account: unknown; created: boolean };
   return setSession(NextResponse.json({ account, created }, { headers: NO_STORE }), session, req);

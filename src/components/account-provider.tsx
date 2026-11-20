@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import type { ConfirmationResult } from "firebase/auth";
+import { confirmFirebaseCode, firebaseConfigured, firebaseMessage, sendFirebaseCode } from "@/lib/firebase-phone";
 import { Icon } from "./icon";
 import { useShop } from "./shop-provider";
 
@@ -15,7 +17,8 @@ import { useShop } from "./shop-provider";
  */
 
 export type Account = { phone: string; first_name: string; last_name: string; name: string; member_since: string };
-export type AuthConfig = { available: boolean; test_mode: boolean; otp_digits: number; resend_seconds: number };
+/** provider "firebase": Firebase sends and checks the code in this browser; "minimo" (or missing): our admin does. */
+export type AuthConfig = { available: boolean; test_mode: boolean; provider?: "firebase" | "minimo"; otp_digits: number; resend_seconds: number };
 
 type Open = { reason?: "checkout" | "account" | "wishlist"; then?: () => void };
 type Ctx = {
@@ -215,6 +218,9 @@ export function SignInFlow({ config, onDone, autoFocus = true, idPrefix = "si" }
   const phoneRef = useRef<HTMLInputElement>(null);
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
   const nameRef = useRef<HTMLInputElement>(null);
+  const captcha = useRef<HTMLDivElement>(null);
+  const fbSent = useRef<ConfirmationResult | null>(null);
+  const viaFirebase = config.provider === "firebase";
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -235,9 +241,22 @@ export function SignInFlow({ config, onDone, autoFocus = true, idPrefix = "si" }
     }
     setBusy(true);
     setErr("");
-    const res = await post<{ resend_in: number; test_code?: string }>("/api/auth/otp", { phone });
+    const res = await post<{ resend_in: number; test_code?: string; provider?: string }>("/api/auth/otp", { phone });
+    if (!res.ok) {
+      setBusy(false);
+      return setErr(res.message);
+    }
+    if (res.data.provider === "firebase") {
+      // Our admin checked the limits and logged the request; Firebase sends the SMS.
+      try {
+        if (!firebaseConfigured() || !captcha.current) throw new Error("firebase not configured");
+        fbSent.current = await sendFirebaseCode(phone, captcha.current);
+      } catch (e) {
+        setBusy(false);
+        return setErr(firebaseMessage(e));
+      }
+    }
     setBusy(false);
-    if (!res.ok) return setErr(res.message);
     setTestCode(res.data.test_code ?? "");
     setCode(Array(config.otp_digits).fill(""));
     setBad(false);
@@ -250,7 +269,20 @@ export function SignInFlow({ config, onDone, autoFocus = true, idPrefix = "si" }
     if (c.length !== config.otp_digits) return setErr(`Enter the ${config.otp_digits}-digit code.`);
     setBusy(true);
     setErr("");
-    const res = await post<{ account: Account; created: boolean }>("/api/auth/verify", { phone, code: c });
+    let body: Record<string, string> = { phone, code: c };
+    if (viaFirebase && fbSent.current) {
+      try {
+        body = { phone, firebase_token: await confirmFirebaseCode(fbSent.current, c) };
+      } catch (e) {
+        setBusy(false);
+        setBad(true);
+        setErr(firebaseMessage(e));
+        setCode(Array(config.otp_digits).fill(""));
+        setTimeout(() => boxes.current[0]?.focus(), 30);
+        return;
+      }
+    }
+    const res = await post<{ account: Account; created: boolean }>("/api/auth/verify", body);
     setBusy(false);
     if (!res.ok) {
       setBad(true);
@@ -345,7 +377,7 @@ export function SignInFlow({ config, onDone, autoFocus = true, idPrefix = "si" }
             Change
           </button>
         </p>
-        <div className="a-code" role="group" aria-label={`${config.otp_digits}-digit code`}>
+        <div className="a-code" role="group" aria-label={`${config.otp_digits}-digit code`} style={{ gridTemplateColumns: `repeat(${config.otp_digits}, 1fr)` }}>
           {code.map((d, i) => (
             <input
               key={i}
@@ -377,6 +409,7 @@ export function SignInFlow({ config, onDone, autoFocus = true, idPrefix = "si" }
         <button className="a-btn" style={{ marginTop: 6 }} disabled={busy} aria-busy={busy}>
           {busy ? "Checking…" : "Verify OTP"}
         </button>
+        <div ref={captcha} className="a-captcha" />
         <p className="a-resend">
           {wait > 0 ? (
             `Resend in ${wait}s`
@@ -421,6 +454,7 @@ export function SignInFlow({ config, onDone, autoFocus = true, idPrefix = "si" }
       <button className="a-btn" style={{ marginTop: 6 }} disabled={busy} aria-busy={busy}>
         {busy ? "Sending…" : "Send OTP"}
       </button>
+      <div ref={captcha} className="a-captcha" />
     </form>
   );
 }
@@ -473,6 +507,20 @@ function SignInSheet({ open, reason, config, onClose, onDone }: { open: boolean;
         {open && <SignInFlow key={round} config={config} onDone={onDone} />}
         <p className="a-legal">
           By continuing you agree to our <Link href="/visit-our-store">Privacy Policy</Link>.
+          {config.provider === "firebase" && (
+            <>
+              {" "}
+              Protected by reCAPTCHA: Google&apos;s{" "}
+              <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">
+                Privacy Policy
+              </a>{" "}
+              and{" "}
+              <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">
+                Terms
+              </a>{" "}
+              apply.
+            </>
+          )}
         </p>
       </div>
     </>
