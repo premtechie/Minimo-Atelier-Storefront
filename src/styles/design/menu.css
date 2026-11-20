@@ -35,7 +35,7 @@
 .e-fullmenu.d-mnav { padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(40px, env(safe-area-inset-bottom)); }
 
 /* Account links: a quieter list under the categories, like Bluebee's Sign in / Cart / Wishlist row. */
-.d-mnav-small { display: flex; flex-direction: column; margin-top: 20px; }
+.d-mnav-small { display: flex; flex-direction: column; margin-top: 20px; padding: 0 !important; overflow: visible !important; }
 .d-mnav-small a,
 .d-mnav-small .d-mnav-signin { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0; border: 0; background: none; font: 500 15px/1.2 var(--font-sans); color: var(--fg-soft); text-decoration: none; text-align: left; cursor: pointer; transition: color var(--t2) var(--ease); }
 .d-mnav-small a svg,
