@@ -259,5 +259,5 @@ export const SHOP = {
   geo: null as [number, number] | null, // [latitude, longitude] from Google Maps
   openingHours: ["Mo-Fr 16:00-21:30", "Sa-Su 10:00-21:30"],
   mapsUrl: "https://www.google.com/maps/search/?api=1&query=Honer+Vivantis+Hyderabad",
-  instagram: "https://www.instagram.com/minimoatelier/",
+  instagram: "https://www.instagram.com/minimo.atelier_/",
 };
