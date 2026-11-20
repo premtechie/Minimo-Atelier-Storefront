@@ -5,9 +5,11 @@ import { StoreTour } from "@/components/store-tour";
 import { SHOP } from "@/lib/merch";
 import { waLink } from "@/lib/whatsapp";
 
+import { pageMeta } from "@/lib/seo";
 export const metadata: Metadata = {
-  title: "Visit our store",
-  description: "Our store is inside Honer Vivantis, Hyderabad. See the packs, feel the bags, and pick up your order.",
+  title: { absolute: "Return gift shop in Gopanpally, Hyderabad: visit our store · Minimo Atelier" },
+  description: "Visit Minimo Atelier, a return gift and hamper store inside Honer Vivantis, Gopanpally, near Nallagandla, Tellapur and Gachibowli. See the packs, feel the bags and pick up your order free.",
+  ...pageMeta("/visit-our-store", "Return gift shop in Gopanpally, Hyderabad: visit our store", "Visit Minimo Atelier, a return gift and hamper store inside Honer Vivantis, Gopanpally, near Nallagandla, Tellapur and Gachibowli. See the packs, feel the bags and pick up your order free."),
 };
 
 /* In the approved design's markup: its plain classes are e- here, rules in styles/design/visit.css. */
@@ -20,7 +22,7 @@ export default function VisitStore() {
         <div className="e-wrap e-sv-info" id="store-info">
           <div className="e-page-hero" style={{ paddingTop: 8 }}>
             <p className="muted" style={{ maxWidth: "52ch" }}>
-              Our store is inside Honer Vivantis, Hyderabad. Come see the packs, feel the bags, and pick up your order.
+              Our return gift store is inside Honer Vivantis, Gopanpally, Hyderabad, a short drive from Nallagandla, Tellapur, Gachibowli and Kondapur. Come see the packs, feel the bags, and pick up your order.
             </p>
           </div>
           <div className="e-info-grid">

@@ -96,9 +96,9 @@ export function HomeHero({ packs }: { packs: ResolvedPack[] }) {
           <p className="m-eyebrow" key={`e${cur}`}>
             {k.theme}
           </p>
-          <h1 className="m-h1 m-hero-name" key={`n${cur}`}>
+          <p className="m-h1 m-hero-name" key={`n${cur}`}>
             {k.name}
-          </h1>
+          </p>
         </div>
       </div>
 

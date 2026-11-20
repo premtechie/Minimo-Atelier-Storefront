@@ -9,6 +9,8 @@ import { getStore } from "@/lib/catalogue";
 import { BUDGET_BANDS, RG_TABS } from "@/lib/merch";
 import { featured, inSection } from "@/lib/store";
 import type { Product } from "@/lib/types";
+import { BUDGET_COPY, breadcrumbs, itemList, ldJson, pageMeta } from "@/lib/seo";
+import { packHref, productHref } from "@/lib/format";
 
 const PAGE = 24;
 const COLS = {
@@ -24,10 +26,32 @@ const SORTS = [
   ["new", "New arrivals"],
 ] as const;
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+/** What each collection is called in search results. */
+const SEO: Record<Slug, { title: string; description: string }> = {
+  "return-gifts": {
+    title: "Return gifts for kids' birthday parties in Hyderabad",
+    description: "Shop birthday return gifts for kids in Hyderabad: ready-made return-gift packs and single pieces from under ₹99. Gift-wrapped, name-tagged and ready in 48 hours.",
+  },
+  kids: {
+    title: "Kids' gifts in Hyderabad: bottles, lamps, bags and toys",
+    description: "Gifts kids actually use: water bottles, night lamps, backpacks, lunch boxes and toys, all in stock today at Minimo Atelier, Hyderabad.",
+  },
+  all: {
+    title: "Shop all gifts and return gifts",
+    description: "Every gift and return gift in our Hyderabad store today: stationery, toys, bags, bottles, jewellery and hampers. Sold-out pieces are hidden.",
+  },
+};
+
+export async function generateMetadata({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> }): Promise<Metadata> {
   const { slug } = await params;
-  const c = COLS[slug as Slug];
-  return c ? { title: c.title, description: c.desc } : {};
+  if (!(slug in COLS)) return {};
+  const sp = await searchParams;
+  // A price band of return gifts is its own page in search ("return gifts under 99");
+  // every other filter, sort or page points search at the plain collection.
+  const band = slug === "return-gifts" && sp.budget ? BUDGET_COPY[sp.budget] : undefined;
+  const m = band ?? SEO[slug as Slug];
+  const path = band ? `/shop/${slug}?budget=${sp.budget}` : `/shop/${slug}`;
+  return { title: { absolute: `${m.title} · Minimo Atelier` }, description: m.description, ...pageMeta(path, m.title, m.description) };
 }
 
 function sortBy(list: Product[], sort: string) {
@@ -63,17 +87,22 @@ export default async function Collection({ params, searchParams }: { params: Pro
     return `/shop/${slug}${s ? `?${s}` : ""}`;
   };
   const title = band && slug === "return-gifts" ? `Return gifts ${band.label.toLowerCase()}` : c.title;
+  const ld = [
+    breadcrumbs(band && slug === "return-gifts" ? [["Home", "/"], [c.title, `/shop/${slug}`], [title, null]] : [["Home", "/"], [c.title, null]]),
+    itemList(title, [...packs.map((k) => packHref(k.id)), ...shown.map((p) => productHref(p.sku))]),
+  ];
 
   return (
     <>
       <InnerHeader />
       <main id="main" className="m-wrap m-col">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(ld) }} />
         <Offline ok={store.ok} />
         <div className="m-col-head">
           <div>
             <p className="m-eyebrow">{c.eyebrow}</p>
             <h1 className="m-col-h1">{title}</h1>
-            <p className="m-col-desc">{c.desc}</p>
+            <p className="m-col-desc">{band && slug === "return-gifts" && BUDGET_COPY[band.id] ? BUDGET_COPY[band.id].description : c.desc}</p>
           </div>
           <SearchButton />
         </div>

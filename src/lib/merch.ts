@@ -250,6 +250,13 @@ export const SHOP = {
   name: "Minimo Atelier",
   where: "Inside Honer Vivantis, Hyderabad",
   hours: "", // e.g. "11 am – 9 pm, every day"
+  // For Google (search results, Maps and the shop card). Blanks are left out.
+  street: "Inside Honer Vivantis, Gopanpally",
+  locality: "Hyderabad",
+  pin: "", // e.g. "500046"
+  phone: "", // e.g. "+91 98765 43210"
+  geo: null as [number, number] | null, // [latitude, longitude] from Google Maps
+  openingHours: [] as string[], // e.g. ["Mo-Su 11:00-21:00"]
   mapsUrl: "https://www.google.com/maps/search/?api=1&query=Honer+Vivantis+Hyderabad",
   instagram: "https://www.instagram.com/minimoatelier/",
 };
