@@ -52,6 +52,9 @@
 .e-od-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; padding: 0 20px; border-radius: 99px; border: 1px solid var(--line-strong, #d9c9bf); background: #fff; color: var(--brand); font: 600 14.5px/1 var(--font-sans); text-decoration: none; cursor: pointer; overflow: hidden; }
 .e-od-btn--primary { background: var(--brand); border-color: var(--brand); color: #fff; box-shadow: 0 10px 22px rgba(107, 68, 51, .22); }
 .e-od-btn--sm { height: 38px; padding: 0 14px; font-size: 13px; }
+/* ".dz a { color: inherit }" outranks the classes above on links, so name links too. */
+.dz a.e-od-btn { color: var(--brand); }
+.dz a.e-od-btn--primary, .dz a.e-od-btn--danger { color: #fff; }
 .e-od-btn--danger { background: #b5473b; border-color: #b5473b; color: #fff; }
 .e-od-link { border: 0; background: none; padding: 6px 0; font: 500 13px/1 var(--font-sans); color: #b5473b; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .e-od-thumbs { display: flex; flex: none; }

@@ -370,8 +370,9 @@
 /* ---------- scrolly (matches the design's mm-scrolly) ---------- */
 .m-sc {
   position: relative;
-  height: 400vh;
-  height: 400svh;
+  /* About one screen of scrolling per step, so each step can be read. */
+  height: 650vh;
+  height: 650svh;
   background: var(--bg-sunken);
 }
 .m-sc-stage {

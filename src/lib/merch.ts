@@ -251,9 +251,9 @@ export const SHOP = {
   where: "Inside Honer Vivantis, Hyderabad",
   hours: "Mon–Fri 4 pm – 9:30 pm · Sat–Sun 10 am – 9:30 pm",
   // For Google (search results, Maps and the shop card). Blanks are left out.
-  street: "Inside Honer Vivantis, Gopanpally",
+  street: "D Block, G1, Honer Vivantis, Tellapur Road, Gopanpally",
   locality: "Hyderabad",
-  pin: "", // e.g. "500046"
+  pin: "500019",
   phone: "+91 80157 71790",
   phones: ["+91 80157 71790", "+91 73964 63639"],
   geo: null as [number, number] | null, // [latitude, longitude] from Google Maps
