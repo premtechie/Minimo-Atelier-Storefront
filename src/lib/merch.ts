@@ -249,14 +249,15 @@ export function bulkRate(qty: number) {
 export const SHOP = {
   name: "Minimo Atelier",
   where: "Inside Honer Vivantis, Hyderabad",
-  hours: "", // e.g. "11 am – 9 pm, every day"
+  hours: "Mon–Fri 4 pm – 9:30 pm · Sat–Sun 10 am – 9:30 pm",
   // For Google (search results, Maps and the shop card). Blanks are left out.
   street: "Inside Honer Vivantis, Gopanpally",
   locality: "Hyderabad",
   pin: "", // e.g. "500046"
-  phone: "", // e.g. "+91 98765 43210"
+  phone: "+91 80157 71790",
+  phones: ["+91 80157 71790", "+91 73964 63639"],
   geo: null as [number, number] | null, // [latitude, longitude] from Google Maps
-  openingHours: [] as string[], // e.g. ["Mo-Su 11:00-21:00"]
+  openingHours: ["Mo-Fr 16:00-21:30", "Sa-Su 10:00-21:30"],
   mapsUrl: "https://www.google.com/maps/search/?api=1&query=Honer+Vivantis+Hyderabad",
   instagram: "https://www.instagram.com/minimoatelier/",
 };

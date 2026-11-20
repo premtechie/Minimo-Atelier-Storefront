@@ -30,7 +30,17 @@ export default function VisitStore() {
               <EIcon name="pin" />
               <h3>Where</h3>
               <p>{SHOP.where}</p>
-              <p className="small muted">Ask us on WhatsApp for the shop number</p>
+              <p className="small muted">
+                Call{" "}
+                {SHOP.phones.map((n, i) => (
+                  <span key={n}>
+                    {i ? " or " : ""}
+                    <a className="e-link" href={`tel:${n.replace(/\s/g, "")}`}>
+                      {n}
+                    </a>
+                  </span>
+                ))}
+              </p>
               <a className="e-link" href={SHOP.mapsUrl} target="_blank" rel="noopener">
                 Open in Maps →
               </a>

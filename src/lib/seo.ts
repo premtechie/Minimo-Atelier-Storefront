@@ -55,6 +55,7 @@ export function siteGraph() {
           addressCountry: "IN",
         },
         ...(SHOP.phone ? { telephone: SHOP.phone } : {}),
+        contactPoint: SHOP.phones.map((telephone) => ({ "@type": "ContactPoint", telephone, contactType: "customer service", areaServed: "IN" })),
         ...(SHOP.geo ? { geo: { "@type": "GeoCoordinates", latitude: SHOP.geo[0], longitude: SHOP.geo[1] } } : {}),
         ...(SHOP.openingHours.length ? { openingHours: SHOP.openingHours } : {}),
         hasMap: SHOP.mapsUrl,
