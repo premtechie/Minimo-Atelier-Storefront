@@ -1,20 +1,38 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { inr } from "@/lib/format";
-import { EIcon, Icon } from "./icon";
+import { Icon } from "./icon";
 
-type Hit = { name: string; price: number; href: string; img: string | null };
+type Hit = { name: string; cat: string; price: number; mrp: number | null; href: string; img: string | null };
 
 /** Ask the search sheet to open, from any button. */
 export const openSearch = () => window.dispatchEvent(new Event("mm:search"));
 
-/** The design's search sheet: a bottom sheet on phones, a centred card on wide screens. */
+/** Bluebee's "Popular" chips, in Minimo's words. A chip with a link opens that page; the rest search. */
+const POPULAR: { label: string; href?: string }[] = [
+  { label: "Unicorn" },
+  { label: "Hair clip" },
+  { label: "Bottle" },
+  { label: "Keychain" },
+  { label: "Gifts under ₹99", href: "/shop/return-gifts?budget=under-99" },
+];
+
+/**
+ * Search, as Bluebee does it: a full-screen panel on phones and a 640px card
+ * near the top on wide screens, over the blurred page. The bar holds the
+ * field, a clear button and Cancel; under it sit Popular chips, then, once
+ * you type, matching categories and products. Arrow keys move through the
+ * products and Enter opens the highlighted one.
+ */
 export function SearchSheet() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [hits, setHits] = useState<Hit[] | null>(null);
+  const [res, setRes] = useState<{ term: string; hits: Hit[]; cats: string[] } | null>(null);
+  const [active, setActive] = useState(0);
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -45,7 +63,10 @@ export function SearchSheet() {
     const t = setTimeout(() => {
       fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: ctl.signal })
         .then((r) => r.json())
-        .then((d: { hits: Hit[] }) => setHits(d.hits))
+        .then((d: { hits: Hit[]; cats?: string[] }) => {
+          setRes({ term, hits: d.hits, cats: d.cats ?? [] });
+          setActive(0);
+        })
         .catch(() => {});
     }, 120);
     return () => {
@@ -56,50 +77,151 @@ export function SearchSheet() {
 
   const close = () => setOpen(false);
   const term = q.trim();
+  const shown = term && res ? res : null;
+  const hits = shown?.hits ?? [];
+  const go = (href: string) => {
+    close();
+    router.push(href);
+  };
+  const onKey = (e: React.KeyboardEvent) => {
+    if (!hits.length) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((i) => (i + (e.key === "ArrowDown" ? 1 : hits.length - 1)) % hits.length);
+    }
+  };
+
   return (
-    <>
-      <div className={`e-overlay ${open ? "open" : ""}`} onClick={close} aria-hidden="true" />
-      <div className={`e-sheet e-sheet-center ${open ? "open" : ""}`} role="dialog" aria-modal="true" aria-label="Search" inert={!open}>
-        <div className="e-grab" />
-        <div className="e-sh-head">
-          <h3>Search</h3>
-          <button className="e-icon-btn" onClick={close} aria-label="Close">
-            <Icon name="x" size={22} />
+    <div className={`s-root ${open ? "open" : ""}`} inert={!open}>
+      <div className="s-backdrop" onClick={close} aria-hidden="true" />
+      <div className="s-panel" role="dialog" aria-modal="true" aria-label="Search">
+        <form
+          className="s-bar"
+          role="search"
+          action="/search"
+          onSubmit={(e) => {
+            const h = hits[active];
+            if (h && shown?.term === term) {
+              e.preventDefault();
+              go(h.href);
+            } else close();
+          }}
+        >
+          <Icon name="search" size={20} />
+          <input
+            ref={input}
+            type="search"
+            name="q"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={onKey}
+            placeholder="Search unicorns, bottles, hair clips…"
+            enterKeyHint="search"
+            autoComplete="off"
+            aria-label="Search products, categories or keywords"
+          />
+          {q && (
+            <button
+              type="button"
+              className="s-clear"
+              aria-label="Clear search"
+              onClick={() => {
+                setQ("");
+                input.current?.focus();
+              }}
+            >
+              <Icon name="x" size={16} />
+            </button>
+          )}
+          <button type="button" className="s-cancel" onClick={close}>
+            Cancel
           </button>
-        </div>
-        <div className="e-sh-body">
-          <form
-            className="e-searchbox"
-            role="search"
-            action="/search"
-            onSubmit={() => close()}
-          >
-            <EIcon name="search" sm />
-            <input ref={input} name="q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search gifts, themes, budgets…" enterKeyHint="search" autoComplete="off" aria-label="Search gifts" />
-          </form>
-          <div className="e-stack" style={{ marginTop: 12 }} aria-live="polite">
-            {!term || hits === null ? (
-              <span className="e-small e-muted">Try &quot;unicorn&quot;, &quot;bottle&quot; or &quot;99&quot;</span>
-            ) : hits.length ? (
-              hits.map((h) => (
-                <Link key={h.href} className="e-pair" href={h.href} onClick={close} style={{ textDecoration: "none" }}>
-                  <span className={`e-photo ${h.img ? "has-img" : ""}`}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {h.img && <img src={h.img} alt="" loading="lazy" onError={(e) => void (e.currentTarget.hidden = true)} />}
-                  </span>
-                  <span className="e-nm">{h.name}</span>
-                  <span className="e-price e-num">{inr(h.price)}</span>
-                </Link>
-              ))
-            ) : (
-              <div className="e-empty" style={{ padding: 20 }}>
-                <p>No match for &quot;{q}&quot;. Try a theme or a budget.</p>
+        </form>
+        <div className="s-body" aria-live="polite">
+          {!term ? (
+            <section className="s-section">
+              <p className="s-eyebrow">Popular</p>
+              <div className="s-chips">
+                {POPULAR.map((c) =>
+                  c.href ? (
+                    <Link key={c.label} className="s-chip" href={c.href} onClick={close}>
+                      {c.label}
+                    </Link>
+                  ) : (
+                    <button
+                      key={c.label}
+                      type="button"
+                      className="s-chip"
+                      onClick={() => {
+                        setQ(c.label);
+                        input.current?.focus();
+                      }}
+                    >
+                      {c.label}
+                    </button>
+                  ),
+                )}
               </div>
-            )}
-          </div>
+            </section>
+          ) : shown ? (
+            <>
+              {shown.cats.length > 0 && (
+                <section className="s-section">
+                  <p className="s-eyebrow">Categories</p>
+                  <div className="s-chips">
+                    {shown.cats.map((c) => (
+                      <Link key={c} className="s-chip s-chip--link" href={`/search?q=${encodeURIComponent(c)}`} onClick={close}>
+                        <Icon name="search" size={14} />
+                        {c}
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+              {hits.length ? (
+                <section className="s-section">
+                  <p className="s-eyebrow">Products</p>
+                  <ul className="s-list">
+                    {hits.map((h, i) => (
+                      <li key={h.href}>
+                        <Link className={`s-item ${i === active ? "is-active" : ""}`} href={h.href} onClick={close} onMouseEnter={() => setActive(i)}>
+                          <span className="s-thumb">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            {h.img && <img src={h.img} alt="" loading="lazy" onError={(e) => void (e.currentTarget.hidden = true)} />}
+                          </span>
+                          <span className="s-item-text">
+                            <span className="s-item-name">{h.name}</span>
+                            <span className="s-item-cat">{h.cat}</span>
+                          </span>
+                          <span className="s-item-price">
+                            <span>{inr(h.price)}</span>
+                            {h.mrp && <s>{inr(h.mrp)}</s>}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link className="s-all" href={`/search?q=${encodeURIComponent(term)}`} onClick={close}>
+                    See all results for &ldquo;{term}&rdquo;
+                  </Link>
+                </section>
+              ) : (
+                <section className="s-section">
+                  <p className="s-note">No match for &ldquo;{term}&rdquo;. Try a theme or a budget.</p>
+                  <div className="s-chips">
+                    {POPULAR.filter((c) => c.href).map((c) => (
+                      <Link key={c.label} className="s-chip" href={c.href!} onClick={close}>
+                        {c.label}
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          ) : null}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

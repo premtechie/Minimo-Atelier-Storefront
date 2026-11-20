@@ -7,13 +7,15 @@
  * (Orders, Wishlist, Addresses, Profile, Sign out) and the tab on the right.
  * Colours are Minimo's cocoa in place of Bluebee's navy.
  */
-.a-overlay { position: fixed; inset: 0; z-index: 120; background: rgba(43, 29, 22, 0.38); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity var(--t3) var(--ease); }
+/* The prefixed blur goes first: in the other order the minifier drops the standard one and Chrome shows no blur. */
+.a-overlay { position: fixed; inset: 0; z-index: 120; background: rgba(43, 29, 22, 0.38); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity var(--t3) var(--ease); }
 .a-overlay.open { opacity: 1; pointer-events: auto; }
 .a-sheet { position: fixed; z-index: 121; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 24px 24px 0 0; padding: 8px 24px calc(28px + env(safe-area-inset-bottom)); box-shadow: var(--sh-lg); transform: translateY(104%); transition: transform 420ms var(--ease); max-height: 92svh; overflow-y: auto; color: var(--fg); font-family: var(--ff-ui); }
 .a-sheet.open { transform: translateY(0); }
+/* Wide screens, as Bluebee: the same sheet floats 24px above the bottom edge, all corners round, and slides up. */
 @media (min-width: 768px) {
-  .a-sheet { left: 50%; right: auto; bottom: auto; top: 50%; width: 480px; border-radius: 24px; transform: translate(-50%, -46%) scale(0.97); opacity: 0; pointer-events: none; transition: transform 320ms var(--ease), opacity 220ms var(--ease); padding-bottom: 28px; }
-  .a-sheet.open { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+  .a-sheet { left: 0; right: 0; margin: 0 auto; width: 100%; max-width: 480px; bottom: 24px; border-radius: 24px; padding-bottom: 28px; max-height: calc(100dvh - 48px); transform: translateY(calc(100% + 32px)); transition: transform 260ms cubic-bezier(0.4, 0, 1, 1); }
+  .a-sheet.open { transform: translateY(0); transition: transform 420ms var(--ease); }
 }
 .a-drag { display: flex; justify-content: center; padding: 2px 0 14px; }
 .a-handle { width: 40px; height: 4px; border-radius: 999px; background: var(--line-strong); }
