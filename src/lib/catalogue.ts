@@ -18,7 +18,9 @@ export const REVALIDATE = 60;
 export function adminFetch(path: string, init: RequestInit & { next?: { revalidate?: number; tags?: string[] } } = {}) {
   const key = process.env.ADMIN_API_KEY;
   if (!key) throw new Error("ADMIN_API_KEY is not set");
-  return fetch(`${ADMIN_URL}/api/v1/storefront${path}`, { ...init, headers: { ...init.headers, [KEY_HEADER]: key } });
+  // Which site is asking: a preview gets test sign-in codes, never real SMS.
+  const env = process.env.VERCEL_ENV || "development";
+  return fetch(`${ADMIN_URL}/api/v1/storefront${path}`, { ...init, headers: { ...init.headers, [KEY_HEADER]: key, "x-storefront-env": env } });
 }
 
 async function fetchCatalogue(): Promise<Catalogue | null> {

@@ -8,6 +8,8 @@ const PATHS = {
   search: <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>,
   menu: <><path d="M4 6h16M4 12h16M4 18h16"/></>,
   x: <><path d="M18 6 6 18M6 6l12 12"/></>,
+  logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></>,
+  bolt: <><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></>,
   arrowR: <><path d="M5 12h14M12 5l7 7-7 7"/></>,
   arrowL: <><path d="M19 12H5M12 19l-7-7 7-7"/></>,
   chevD: <><path d="m6 9 6 6 6-6"/></>,

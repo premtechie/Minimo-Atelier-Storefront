@@ -8,11 +8,15 @@ import { newToken, rememberOrder, type Order, type SavedOrder } from "@/lib/orde
 import { OrderPlaced } from "./orders-view";
 import { inr, plural } from "@/lib/format";
 import type { LiteItem } from "@/lib/lite";
+import { useAccount } from "./account-provider";
+import { useAddresses } from "./account-view";
 import { Icon } from "./icon";
 import { fetchQuote, isPin, savePin, savedPin, shortDate, SPEED_NAME, type Quote, type Speed } from "@/lib/delivery";
 import { useShop } from "./shop-provider";
 import { track } from "@/lib/analytics";
 
+// Called only from the Place order handler, never while rendering.
+const placedAt = () => Date.now();
 
 /*
  * The cart and its checkout sheet, in the approved design's markup: its mm-
@@ -365,6 +369,21 @@ function Checkout({
   // second tap on Continue places the same order, not a second one.
   const [token, setToken] = useState(() => newToken());
   const box = useRef<HTMLDivElement>(null);
+  // Once sign-in is on, an order needs a signed-in shopper (Bluebee asks at
+  // this same step); their mobile is the order's, and saved addresses fill in.
+  const { status: auth, account, required, openSignIn } = useAccount();
+  const signedIn = auth === "signed_in" && !!account;
+  const gate = required && !signedIn;
+  const phone = signedIn ? account.phone : mob;
+  const { list: addresses } = useAddresses(signedIn && open);
+  const [picked, setPicked] = useState<string | null>(null);
+  const pickAddress = (a: NonNullable<typeof addresses>[number]) => {
+    setPicked(a.id);
+    setAddr([a.line1, a.line2, a.city].filter(Boolean).join(", ").slice(0, 160));
+    setPin(a.pin);
+    if (del === "pickup" || del === "flat") setDel(a.pin.startsWith("500") ? "hyd" : "india");
+    setErr("");
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -421,7 +440,8 @@ function Checkout({
 
   const pos = (p: 1 | 2) => (p === step ? "on" : p < step ? "left" : "right");
   const place = async () => {
-    if (!/^[6-9]\d{9}$/.test(mob)) {
+    if (gate) return openSignIn({ reason: "checkout" });
+    if (!/^[6-9]\d{9}$/.test(phone)) {
       setErr2("Enter a 10-digit mobile number.");
       mobRef.current?.focus();
       return;
@@ -437,7 +457,7 @@ function Checkout({
           delivery: del,
           address: needAddr ? addr.trim() : "",
           pin: pick ? "" : pin,
-          phone: mob,
+          phone,
           updates,
           gift_note: giftNote,
           coupon,
@@ -445,9 +465,13 @@ function Checkout({
           lines: lines.map((l) => ({ name: lineName(l), qty: l.qty, parts: l.parts, note: l.note, detail: l.kind === "build" ? l.detail : undefined, bulk: l.bulk !== false })),
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { order?: Order; error?: { message?: string } };
+      const data = (await res.json().catch(() => ({}))) as { order?: Order; error?: { code?: string; message?: string } };
+      if (res.status === 401 && data.error?.code === "sign_in_required") {
+        openSignIn({ reason: "checkout" });
+        throw new Error("Please sign in to place your order.");
+      }
       if (!res.ok || !data.order) throw new Error(data.error?.message || "We couldn't place your order just now. Please try again.");
-      const saved: SavedOrder = { number: data.order.number, token, at: Date.now(), images: lines.map((l) => l.image), order: data.order };
+      const saved: SavedOrder = { number: data.order.number, token, at: placedAt(), images: lines.map((l) => l.image), order: data.order };
       rememberOrder(saved);
       track("order_placed", { delivery: del });
       setToken(newToken());
@@ -508,6 +532,16 @@ function Checkout({
                   </label>
                 ))}
               </div>
+              {needAddr && del !== "flat" && signedIn && addresses && addresses.length > 0 && (
+                <div className="a-saved" role="group" aria-label="Saved addresses">
+                  {addresses.map((a) => (
+                    <button key={a.id} type="button" aria-pressed={picked === a.id} onClick={() => pickAddress(a)}>
+                      {a.is_default ? "★ " : ""}
+                      {a.line1}, {a.pin}
+                    </button>
+                  ))}
+                </div>
+              )}
               {needAddr && (
                 <div className="d-phone-field d-precheckout-pin">
                   <input
@@ -607,23 +641,49 @@ function Checkout({
                       Change
                     </button>
                   </div>
-                  <h2 className="d-precheckout-title" id="h-co">
-                    Your mobile number
-                  </h2>
-                  <div className="d-phone-field">
-                    <span className="d-phone-field-prefix">+91</span>
-                    <input
-                      ref={mobRef}
-                      value={mob}
-                      onChange={(e) => setMob(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                      onKeyDown={(e) => e.key === "Enter" && !busy && void place()}
-                      inputMode="numeric"
-                      maxLength={10}
-                      placeholder="10-digit mobile"
-                      autoComplete="tel-national"
-                      aria-label="Mobile number"
-                    />
-                  </div>
+                  {gate ? (
+                    <>
+                      <h2 className="d-precheckout-title" id="h-co">
+                        Sign in to place your order
+                      </h2>
+                      <p className="d-pre-legal" style={{ marginTop: 0, textAlign: "left" }}>
+                        One quick code on your mobile, then your orders, addresses and wishlist stay with you on any device.
+                      </p>
+                    </>
+                  ) : signedIn ? (
+                    <>
+                      <h2 className="d-precheckout-title" id="h-co">
+                        Ordering as
+                      </h2>
+                      <div className="a-who">
+                        <span className="a-avatar">{(account.first_name || "M").slice(0, 1).toUpperCase()}</span>
+                        <span className="a-who-txt">
+                          <b>{account.name || "Your account"}</b>
+                          +91 {account.phone}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                    <h2 className="d-precheckout-title" id="h-co">
+                      Your mobile number
+                    </h2>
+                    <div className="d-phone-field">
+                      <span className="d-phone-field-prefix">+91</span>
+                      <input
+                        ref={mobRef}
+                        value={mob}
+                        onChange={(e) => setMob(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        onKeyDown={(e) => e.key === "Enter" && !busy && void place()}
+                        inputMode="numeric"
+                        maxLength={10}
+                        placeholder="10-digit mobile"
+                        autoComplete="tel-national"
+                        aria-label="Mobile number"
+                      />
+                    </div>
+                    </>
+                  )}
                   <p className="d-precheckout-err" aria-live="polite">
                     {err2}
                   </p>
@@ -634,13 +694,13 @@ function Checkout({
                   )}
                   <div className="d-pc-actions">
                     <button className="d-sum-cta d-precheckout-cta" onClick={() => void place()} disabled={busy} aria-busy={busy}>
-                      {busy ? "Placing your order…" : "Place order"} {!busy && <Icon name="arrowR" size={16} />}
+                      {gate ? "Sign in to continue" : busy ? "Placing your order…" : "Place order"} {!busy && <Icon name="arrowR" size={16} />}
                     </button>
                   </div>
                   <label className="d-pc-optin">
                     <input type="checkbox" checked={updates} onChange={(e) => setUpdates(e.target.checked)} /> Order updates on WhatsApp
                   </label>
-                  <p className="d-pre-legal">Nothing is charged now. We confirm stock, then send you a UPI link. Your number is used only for this order.</p>
+                  <p className="d-pre-legal">Nothing is charged now. We confirm stock, then send you a UPI link.{signedIn ? "" : " Your number is used only for this order."}</p>
                 </>
               )}
             </div>

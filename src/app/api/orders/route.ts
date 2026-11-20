@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { sessionOf } from "@/lib/account-server";
 import { bad, readBody, relay, tooMany } from "@/lib/orders-server";
 
 // POST /api/orders → places the shopper's order in the shop's admin.
@@ -8,5 +9,7 @@ export async function POST(req: NextRequest) {
   const b = await readBody(req);
   if (!b) return bad();
   const { token, lines, delivery, address, pin, phone, updates, gift_note, coupon } = b;
-  return relay("/orders", { token, lines, delivery, address, pin, phone, updates: updates === true, gift_note, coupon });
+  // The signed-in shopper's session goes along, so the order is filed under their account.
+  const session = sessionOf(req);
+  return relay("/orders", { token, lines, delivery, address, pin, phone, updates: updates === true, gift_note, coupon, ...(session ? { session } : {}) });
 }

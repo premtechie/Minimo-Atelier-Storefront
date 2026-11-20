@@ -16,8 +16,6 @@ const nextConfig: NextConfig = {
       { source: "/category/:slug*", destination: "/shop/all", permanent: true },
       { source: "/product/:sku(minimo-.*)", destination: "/shop/all", permanent: true },
       { source: "/checkout", destination: "/cart", permanent: false },
-      // Temporary: phone sign-in (PR #1) adds a real /account page; remove this then.
-      { source: "/account", destination: "/orders", permanent: false },
     ];
   },
   async headers() {
