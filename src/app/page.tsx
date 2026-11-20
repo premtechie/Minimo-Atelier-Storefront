@@ -4,12 +4,15 @@ import { HomeHeader } from "@/components/header";
 import { HomeHero } from "@/components/home-hero";
 import { Offline } from "@/components/offline";
 import { Scrolly } from "@/components/scrolly";
+import { SeoIntro } from "@/components/seo-intro";
 import { Trust } from "@/components/trust";
 import { getStore } from "@/lib/catalogue";
 import { BUDGET_BANDS } from "@/lib/merch";
 import { featured, inSection } from "@/lib/store";
 
 export const revalidate = 60;
+
+export const metadata = { alternates: { canonical: "/" } };
 
 const TILES = [
   ...BUDGET_BANDS.slice(0, 4).map((b) => ({ label: b.label, href: `/shop/return-gifts?budget=${b.id}`, art: b.art })),
@@ -111,6 +114,7 @@ export default async function Home() {
           </div>
         </section>
       )}
+      <SeoIntro />
     </>
   );
 }

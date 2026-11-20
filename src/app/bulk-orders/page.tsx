@@ -3,9 +3,11 @@ import { BulkForm } from "@/components/bulk-form";
 import { InnerHeader } from "@/components/header";
 import { BULK_RULES } from "@/lib/merch";
 
+import { pageMeta } from "@/lib/seo";
 export const metadata: Metadata = {
-  title: "Bulk & school orders",
-  description: "Class parties, Children's Day, teacher gifts and school events. Bulk pricing from 15 pieces at Minimo Atelier.",
+  title: { absolute: "Bulk return gifts in Hyderabad for schools and class parties · Minimo Atelier" },
+  description: "Bulk return gifts in Hyderabad for class parties, Children's Day, teacher gifts and school events. 5% off from 15 pieces, 10% off from 25, name-tagged and ready in 48 hours.",
+  ...pageMeta("/bulk-orders", "Bulk return gifts in Hyderabad for schools and class parties", "Bulk return gifts in Hyderabad for class parties, Children's Day, teacher gifts and school events. 5% off from 15 pieces, 10% off from 25, name-tagged and ready in 48 hours."),
 };
 
 const STEPS = ["Send the count, budget and date", "We share 2–3 options with photos", "Approve, pay, and we pack", "Pick up or we deliver to the school"];
@@ -18,7 +20,7 @@ export default function BulkOrders() {
       <InnerHeader />
       <main id="main" className="dy e-wrap">
         <div className="e-page-hero">
-          <span className="e-eyebrow">Bulk &amp; school orders</span>
+          <span className="e-eyebrow">Bulk return gifts &amp; school orders, Hyderabad</span>
           <h1>
             Ordering {tiers[1]?.[0] ?? 25}+? <em>Bulk pricing.</em>
           </h1>

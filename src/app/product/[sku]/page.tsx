@@ -8,6 +8,8 @@ import { getStore } from "@/lib/catalogue";
 import { inr } from "@/lib/format";
 import { featured, pairsFor, stockCap } from "@/lib/store";
 import { SITE_URL } from "@/lib/whatsapp";
+import { abs, breadcrumbs, ldJson, pageMeta, STORE_ID } from "@/lib/seo";
+import type { Product } from "@/lib/types";
 
 export const revalidate = 60;
 
@@ -19,11 +21,29 @@ async function find(sku: string) {
 export async function generateMetadata({ params }: { params: Promise<{ sku: string }> }): Promise<Metadata> {
   const { p } = await find((await params).sku);
   if (!p) return { title: "Not found" };
+  const title = seoTitle(p);
+  const description = describe(p);
+  const meta = pageMeta(`/product/${p.sku.toLowerCase()}`, title, description);
+  // Shared on WhatsApp, the product's own photo shows instead of the shop card.
+  const photo = p.photoUrl ? [{ url: p.photoUrl, alt: p.name }] : null;
   return {
-    title: p.name,
-    description: `${p.name}, ${inr(p.price)} at Minimo Atelier. Wrapped and ready in 48 h, free pickup inside Honer Vivantis.`,
-    alternates: { canonical: `/product/${p.sku.toLowerCase()}` },
+    title: { absolute: `${title} · Minimo Atelier` },
+    description,
+    ...meta,
+    ...(photo ? { openGraph: { ...meta.openGraph, images: photo }, twitter: { ...meta.twitter, images: [photo[0].url] } } : {}),
   };
+}
+
+const isGift = (p: Product) => p.sections.includes("return-gifts");
+/** "Unicorn Pencil Pack, return gift for kids, ₹49": what people search for, with the price. */
+function seoTitle(p: Product) {
+  const kind = isGift(p) ? "Return gift for kids" : p.sections.includes("for-her") ? "Gift for her" : p.sections.includes("for-him") ? "Gift for him" : "Kids' gift";
+  return `${p.name}, ${inr(p.price)}: ${kind} in Hyderabad`;
+}
+function describe(p: Product) {
+  return isGift(p)
+    ? `Buy ${p.name} as a birthday return gift for ${inr(p.price)} a piece. ${p.category}${p.material ? `, ${p.material}` : ""}. Mix it into a return-gift bag, gift-wrapped and name-tagged in 48 hours. Pickup or delivery in Hyderabad, courier across India.`
+    : `Buy ${p.name} for ${inr(p.price)} at Minimo Atelier, Hyderabad. ${p.category}${p.material ? `, ${p.material}` : ""}. Gift-wrapped with a card, ready in 48 hours. Pickup or delivery in Hyderabad, courier across India.`;
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ sku: string }> }) {
@@ -36,21 +56,31 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
   const related = featured(store.live.filter((x) => x.category_slug === p.category_slug && x.sku !== p.sku)).slice(0, 4);
   const more = related.length < 4 ? featured(store.live.filter((x) => x.sections.includes(sec) && x.sku !== p.sku && !related.includes(x))).slice(0, 4 - related.length) : [];
   const cap = stockCap(p);
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: p.name,
-    sku: p.sku,
-    category: p.category,
-    image: p.photoUrl ?? undefined,
-    offers: {
-      "@type": "Offer",
-      price: p.price,
-      priceCurrency: "INR",
-      availability: `https://schema.org/${p.availability === "out_of_stock" ? "OutOfStock" : p.availability === "few_left" ? "LimitedAvailability" : "InStock"}`,
-      url: `${SITE_URL}/product/${p.sku.toLowerCase()}`,
+  const url = `${SITE_URL}/product/${p.sku.toLowerCase()}`;
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "@id": `${url}#product`,
+      name: p.name,
+      sku: p.sku,
+      category: p.category,
+      description: describe(p),
+      ...(p.material ? { material: p.material } : {}),
+      brand: { "@type": "Brand", name: "Minimo Atelier" },
+      image: p.photoUrl ? [abs(p.photoUrl)] : p.art ? [abs(p.art)] : undefined,
+      offers: {
+        "@type": "Offer",
+        url,
+        price: p.price,
+        priceCurrency: "INR",
+        itemCondition: "https://schema.org/NewCondition",
+        availability: `https://schema.org/${p.availability === "out_of_stock" ? "OutOfStock" : p.availability === "few_left" ? "LimitedAvailability" : "InStock"}`,
+        seller: { "@id": STORE_ID },
+      },
     },
-  };
+    breadcrumbs([["Home", "/"], [secName, secHref], [p.name, null]]),
+  ];
 
   const images: GalleryImage[] = p.photoUrl ? [{ src: p.photoUrl, alt: p.name, sample: false, fallback: p.art }] : p.art ? [{ src: p.art, alt: p.name, sample: true }] : [];
   const pairs = pairsFor(store, { skip: new Set([p.sku]), bags: gift ? 1 : 0, extras: gift ? 2 : 3, tab: p.tab });
@@ -65,7 +95,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
     <>
       <InnerHeader />
       <main id="main" className="dz d-pdp">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(jsonLd) }} />
         <Crumbs back={secHref} trail={[["Home", "/"], [secName, secHref], [p.name, null]]} />
         <section className="d-pdp-hero">
           <div className="d-pdp-grid d-pdp-grid--fold">

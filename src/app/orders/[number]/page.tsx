@@ -9,7 +9,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   return (
     <>
       <InnerHeader />
-      <main id="main" className="dz e-od">
+      <main id="main" className="dz e-od" data-clarity-mask="true">
         <OrderDetail number={decodeURIComponent(number).toUpperCase().slice(0, 30)} />
       </main>
     </>

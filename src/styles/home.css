@@ -950,3 +950,83 @@
 .m-sec-head .m-eyebrow {
   margin: 0 0 8px;
 }
+
+/* Home: the words parents and search engines read (SeoIntro). */
+.m-seo {
+  border-top: 1px solid var(--line);
+  background: var(--brand-tint);
+}
+.m-seo-wrap {
+  display: grid;
+  gap: 32px;
+}
+@media (min-width: 900px) {
+  .m-seo-wrap {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 56px;
+    align-items: start;
+  }
+}
+.m-seo-copy p {
+  margin: 12px 0 0;
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--fg-soft);
+}
+.m-seo-copy a:not(.m-chip) {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.m-seo-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+.m-seo-faq-h {
+  margin: 0 0 4px;
+  font-family: var(--ff-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--brand);
+}
+.m-seo-q {
+  border-bottom: 1px solid var(--line);
+}
+.m-seo-q summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--fg);
+}
+.m-seo-q summary::-webkit-details-marker {
+  display: none;
+}
+.m-seo-q summary svg {
+  flex-shrink: 0;
+  color: var(--cocoa-500);
+  transition: transform 0.2s var(--ease);
+}
+.m-seo-q[open] summary svg {
+  transform: rotate(180deg);
+}
+.m-seo-q summary:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: var(--r-sm);
+}
+.m-seo-q p {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--fg-soft);
+}
