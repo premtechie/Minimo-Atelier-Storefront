@@ -54,3 +54,67 @@
     bottom: 104px;
   }
 }
+
+/* Return gift ideas guide (/return-gift-ideas): a readable article column. */
+.m-guide {
+  max-width: 760px;
+  padding-top: 24px;
+  padding-bottom: 64px;
+}
+.m-guide h1 {
+  margin: 4px 0 12px;
+}
+.m-guide h2 {
+  margin: 40px 0 12px;
+  font-family: var(--ff-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--brand);
+}
+.m-guide h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.m-guide p,
+.m-guide li {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--fg-soft);
+}
+.m-guide-lede {
+  font-size: 17px !important;
+}
+.m-guide a:not(.m-btn) {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.m-guide-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.m-guide-list li {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg-elev);
+}
+.m-guide-age {
+  margin-bottom: 16px;
+}
+.m-guide-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+}
+.m-guide .m-empty-btns {
+  margin-top: 24px;
+}

@@ -5,7 +5,12 @@ import { HER_BANDS } from "@/lib/merch";
 import { inr } from "@/lib/format";
 import { featured, inSection } from "@/lib/store";
 
-export const metadata: Metadata = { title: "For her", description: "Earrings, hair claws, scrunchies, bracelets and bags, wrapped by hand at Minimo Atelier." };
+import { pageMeta } from "@/lib/seo";
+export const metadata: Metadata = {
+  title: { absolute: "Gifts for her in Hyderabad: earrings, hair claws and bags · Minimo Atelier" },
+  description: "Small gifts for her from under ₹49: earrings, hair claws, scrunchies, bracelets, pouches and bags, gift-wrapped by hand in Hyderabad. Add them to a hamper or send as a single gift.",
+  ...pageMeta("/for-her", "Gifts for her in Hyderabad: earrings, hair claws and bags", "Small gifts for her from under ₹49: earrings, hair claws, scrunchies, bracelets, pouches and bags, gift-wrapped by hand in Hyderabad. Add them to a hamper or send as a single gift."),
+};
 
 export default async function ForHer({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const store = await getStore();

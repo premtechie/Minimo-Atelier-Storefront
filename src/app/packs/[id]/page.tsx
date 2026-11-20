@@ -10,6 +10,8 @@ import { PACKS } from "@/lib/merch";
 import { pairsFor } from "@/lib/store";
 import type { Product } from "@/lib/types";
 import Link from "next/link";
+import { abs, breadcrumbs, ldJson, pageMeta, STORE_ID } from "@/lib/seo";
+import { inr } from "@/lib/format";
 
 export const revalidate = 60;
 
@@ -20,7 +22,10 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const k = PACKS.find((x) => x.id === id);
-  return k ? { title: `${k.name} return gift pack`, description: k.blurb } : { title: "Not found" };
+  if (!k) return { title: "Not found" };
+  const title = `${k.name} return gift pack for kids' birthday parties`;
+  const description = `${k.theme === "Any theme" ? "Return gift pack" : `${k.theme} return gift pack`}: ${k.blurb} Gift-wrapped with a name tag, ready in 48 hours in Hyderabad. Bulk price from 15 guests.`;
+  return { title: { absolute: `${title} · Minimo Atelier` }, description, ...pageMeta(`/packs/${k.id}`, title, description) };
 }
 
 export default async function PackPage({ params }: { params: Promise<{ id: string }> }) {
@@ -62,10 +67,34 @@ export default async function PackPage({ params }: { params: Promise<{ id: strin
     if (im && !images.some((i) => i.src === im.src) && images.length < 5) images.push({ ...im, alt: x.name });
   }
   const pairs = pairsFor(store, { skip: new Set([k.bagProduct.sku, ...k.parts.map((x) => x.product.sku)]), bags: 2, extras: 1 });
+  const url = abs(`/packs/${k.id}`);
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "@id": `${url}#product`,
+      name: `${k.name} return gift pack`,
+      description: `${k.blurb} Packed in ${k.bagProduct.name} with a name tag. ${inr(k.price)} a bag.`,
+      category: "Return gifts",
+      brand: { "@type": "Brand", name: "Minimo Atelier" },
+      image: images.map((i) => abs(i.src)),
+      offers: {
+        "@type": "Offer",
+        url,
+        price: k.price,
+        priceCurrency: "INR",
+        itemCondition: "https://schema.org/NewCondition",
+        availability: `https://schema.org/${k.canMake > 0 ? "InStock" : "OutOfStock"}`,
+        seller: { "@id": STORE_ID },
+      },
+    },
+    breadcrumbs([["Home", "/"], ["Return gifts", "/shop/return-gifts"], [k.name, null]]),
+  ];
   return (
     <>
       <InnerHeader />
       <main id="main" className="dz d-pdp">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(jsonLd) }} />
         <Crumbs back="/shop/return-gifts" trail={[["Home", "/"], ["Return gifts", "/shop/return-gifts"], [k.name, null]]} />
         <section className="d-pdp-hero">
           <div className="d-pdp-grid d-pdp-grid--fold">

@@ -4,7 +4,12 @@ import { getStore } from "@/lib/catalogue";
 import { featured, inSection } from "@/lib/store";
 import type { Product } from "@/lib/types";
 
-export const metadata: Metadata = { title: "For him", description: "Wallets, bottles, photo frames and desk gifts, wrapped with a card at Minimo Atelier." };
+import { pageMeta } from "@/lib/seo";
+export const metadata: Metadata = {
+  title: { absolute: "Gifts for him in Hyderabad: wallets, bottles and desk gifts · Minimo Atelier" },
+  description: "Gifts for him: wallets, bottles, photo frames and desk gifts, wrapped with a card at Minimo Atelier in Hyderabad. Pickup or delivery across Hyderabad, courier across India.",
+  ...pageMeta("/for-him", "Gifts for him in Hyderabad: wallets, bottles and desk gifts", "Gifts for him: wallets, bottles, photo frames and desk gifts, wrapped with a card at Minimo Atelier in Hyderabad. Pickup or delivery across Hyderabad, courier across India."),
+};
 
 const GROUPS: Record<string, string> = {
   "wallet-adult": "Wallets",
