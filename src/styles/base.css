@@ -147,6 +147,10 @@ textarea {
   .m-only-desk {
     display: inline-flex !important;
   }
+  /* Icon buttons centre their icon with grid; flex would push it to the left edge. */
+  .m-iconbtn.m-only-desk {
+    display: inline-grid !important;
+  }
   .m-only-phone {
     display: none !important;
   }
