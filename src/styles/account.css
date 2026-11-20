@@ -144,4 +144,4 @@
 @media (prefers-reduced-motion: reduce) { .a-sheet, .a-overlay { transition: none; } }
 .d-mnav-links .d-mnav-signin { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 16px 0; border: 0; border-bottom: 1px solid var(--line); background: none; font: 400 22px/1.2 var(--font-display); color: var(--brand); text-align: left; cursor: pointer; }
 .d-mnav-links .d-mnav-signin svg { color: var(--mm-brand-soft); }
-.m-hhome-right .a-avatar, .m-hin-icons .a-avatar { width: 28px; height: 28px; font-size: 12px; }
+.m-hhome-left .a-avatar, .m-hhome-right .a-avatar, .m-hin-icons .a-avatar { width: 28px; height: 28px; font-size: 12px; }

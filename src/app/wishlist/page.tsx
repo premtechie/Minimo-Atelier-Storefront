@@ -13,8 +13,12 @@ export default async function Wishlist() {
     <>
       <InnerHeader />
       <main id="main" className="m-wrap m-col">
-        <p className="m-eyebrow">Saved</p>
-        <h1 className="m-col-h1">Your wishlist</h1>
+        <header className="m-col-head">
+          <div>
+            <p className="m-eyebrow">Saved items</p>
+            <h1 className="m-col-h1">Your wishlist</h1>
+          </div>
+        </header>
         <WishView items={liteCatalogue(store)} />
       </main>
     </>
