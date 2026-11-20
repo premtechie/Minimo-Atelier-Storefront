@@ -244,11 +244,22 @@ export function BuyBox({ item, eyebrow, badge, title }: { item: BuyItem; eyebrow
 
       {!soldOut && (
         <div className="d-pdp-group d-pdp-qty">
-          <div className="d-opt-lbl">
-            {item.kind === "pack" ? "Guests" : "Quantity"} <b>{q}</b>
+          <div className="d-qty-head">
+            <span className="d-opt-lbl" id="qty-lbl">
+              {item.kind === "pack" ? "Guests" : "Quantity"}
+            </span>
+            <div className="d-qstep sm" role="group" aria-labelledby="qty-lbl">
+              <button type="button" onClick={() => set(q - 1)} disabled={q <= 1} aria-label="One less">
+                <Icon name="minus" size={15} />
+              </button>
+              <input inputMode="numeric" value={q} onChange={(e) => set(Number(e.target.value.replace(/\D/g, "")))} aria-label={item.kind === "pack" ? "Guests" : "Quantity"} />
+              <button type="button" onClick={() => set(q + 1)} disabled={q >= item.max} aria-label="One more">
+                <Icon name="plus" size={15} />
+              </button>
+            </div>
           </div>
-          <div className="d-qty-row">
-            {item.bulk && (
+          {item.bulk && (
+            <div className="d-qty-row">
               <div className="d-chips">
                 {CHIPS.filter((n) => n <= item.max).map((n) => (
                   <button key={n} type="button" className={`d-chip ${n === q ? "is-on" : ""}`} onClick={() => set(n)}>
@@ -256,17 +267,8 @@ export function BuyBox({ item, eyebrow, badge, title }: { item: BuyItem; eyebrow
                   </button>
                 ))}
               </div>
-            )}
-            <div className="d-qstep sm">
-              <button type="button" onClick={() => set(q - 1)} disabled={q <= 1} aria-label="One less">
-                <Icon name="minus" size={15} />
-              </button>
-              <input inputMode="numeric" value={q} onChange={(e) => set(Number(e.target.value.replace(/\D/g, "")))} aria-label="Quantity" />
-              <button type="button" onClick={() => set(q + 1)} disabled={q >= item.max} aria-label="One more">
-                <Icon name="plus" size={15} />
-              </button>
             </div>
-          </div>
+          )}
           {item.bulk ? (
             <p className="d-bulk-live" aria-live="polite">
               <b>{inr(item.price)} each</b> · {q} pcs = <b>{inr(item.price * q - save)}</b>

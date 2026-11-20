@@ -37,9 +37,13 @@ const MENU: { href: string; label: string }[] = [
   { href: "/for-him", label: "For him" },
   { href: "/bulk-orders", label: "Bulk & school orders" },
   { href: "/visit-our-store", label: "Visit our store" },
-  { href: "/orders", label: "My orders" },
-  { href: "/wishlist", label: "Wishlist" },
-  { href: "/cart", label: "Cart" },
+];
+
+/** Account links sit under the categories in small type, as on Bluebee, so they don't read as more aisles. */
+const MENU_SMALL: { href: string; label: string; icon: IconName }[] = [
+  { href: "/orders", label: "My orders", icon: "box" },
+  { href: "/wishlist", label: "Wishlist", icon: "heart" },
+  { href: "/cart", label: "Cart", icon: "bag" },
 ];
 
 /**
@@ -133,11 +137,19 @@ function Menu({ open, onClose }: { open: boolean; onClose: () => void }) {
         </button>
       </div>
       <nav className="d-mnav-links" aria-label="Menu">
-        <MenuAccount onClose={onClose} />
         {MENU.map((m) => (
           <Link key={m.href} href={m.href} onClick={onClose}>
             {m.label}
             <Icon name="chevR" size={18} />
+          </Link>
+        ))}
+      </nav>
+      <nav className="d-mnav-small" aria-label="Your account">
+        <MenuAccount onClose={onClose} />
+        {MENU_SMALL.map((m) => (
+          <Link key={m.href} href={m.href} onClick={onClose}>
+            <Icon name={m.icon} size={16} />
+            {m.label}
           </Link>
         ))}
       </nav>
@@ -157,20 +169,20 @@ function MenuAccount({ onClose }: { onClose: () => void }) {
   if (status === "signed_in" && account)
     return (
       <Link href="/account" onClick={onClose}>
+        <Icon name="user" size={16} />
         {account.first_name ? `Hi, ${account.first_name}` : "My account"}
-        <Icon name="chevR" size={18} />
       </Link>
     );
   if (!required) return null;
   return (
     <button type="button" className="d-mnav-signin" onClick={() => (onClose(), openSignIn({ reason: "account" }))}>
+      <Icon name="user" size={16} />
       Sign in
-      <Icon name="chevR" size={18} />
     </button>
   );
 }
 
-/** Home: store button, centred logo, cart and menu, then the floating pill switcher. */
+/** Home: store and account on the left, centred logo, cart and menu on the right, then the floating pill switcher. */
 export function HomeHeader() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -178,22 +190,24 @@ export function HomeHeader() {
   return (
     <header className="m-hhome">
       <div className="m-hhome-row">
-        <Link
-          href="/visit-our-store"
-          className="m-iconbtn m-iconbtn--card"
-          aria-label="Visit our store"
-          title="Take a tour of our store"
-          onClick={(e) => {
-            if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-            e.preventDefault();
-            setTour(true);
-          }}
-        >
-          <Icon name="store" size={20} />
-        </Link>
+        <div className="m-hhome-left">
+          <Link
+            href="/visit-our-store"
+            className="m-iconbtn m-iconbtn--card"
+            aria-label="Visit our store"
+            title="Take a tour of our store"
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+              e.preventDefault();
+              setTour(true);
+            }}
+          >
+            <Icon name="store" size={20} />
+          </Link>
+          <AccountButton className="m-iconbtn m-iconbtn--card" />
+        </div>
         <Logo className="m-logo--home" />
         <div className="m-hhome-right">
-          <AccountButton className="m-iconbtn m-iconbtn--card" />
           <WishButton className="m-iconbtn m-iconbtn--card m-only-desk" />
           <CartButton className="m-iconbtn m-iconbtn--card" />
           <button className="m-iconbtn m-iconbtn--card m-only-phone" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}>
@@ -243,7 +257,7 @@ export function InnerHeader() {
             >
               <Icon name="search" size={20} />
             </Link>
-            <AccountButton className="m-md-only m-hin-acct" />
+            <AccountButton className="m-hin-acct" />
             <WishButton className="" />
             <CartButton className="" />
             <button className="m-hin-menu" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}>

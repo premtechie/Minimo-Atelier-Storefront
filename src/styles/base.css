@@ -349,10 +349,16 @@ textarea {
 .m-hhome-row > .m-logo {
   justify-self: center;
 }
+.m-hhome-left,
 .m-hhome-right {
-  justify-self: end;
   display: flex;
   gap: 10px;
+}
+.m-hhome-left {
+  justify-self: start;
+}
+.m-hhome-right {
+  justify-self: end;
 }
 .m-pills {
   display: flex;

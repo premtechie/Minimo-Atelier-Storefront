@@ -118,3 +118,32 @@
 .m-guide .m-empty-btns {
   margin-top: 24px;
 }
+
+/* 404: Bluebee keeps the shopper moving with a search field and a few picks under the message. */
+.m-404 {
+  padding-bottom: 72px;
+}
+.m-404 .m-eyebrow {
+  margin: 14px 0 6px;
+}
+.m-404-search {
+  max-width: 440px;
+  margin: 22px auto 0;
+  text-align: left;
+}
+.m-404-shop {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-top: 8px;
+  font: 500 14px/1 var(--ff-ui);
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--cocoa-300);
+}
+.m-404-picks {
+  margin-top: 40px;
+  text-align: left;
+}

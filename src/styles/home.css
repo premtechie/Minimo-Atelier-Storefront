@@ -1031,3 +1031,32 @@
   line-height: 1.6;
   color: var(--fg-soft);
 }
+
+/* ---------- Bluebee match, Nov 2026 ---------- */
+/* Hero: the centre pack sits in a white frame with a soft shadow, as Bluebee's product card does. */
+.m-hero-card {
+  padding: 6px;
+}
+.m-hero-media {
+  border-radius: calc(var(--r-xl) - 6px);
+}
+/* Shop by budget: seven tiles leave Bulk orders alone on the last phone row; let it fill the row instead. */
+@media (max-width: 767px) {
+  .m-tile:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+  .m-tile:last-child:nth-child(odd) .m-tile-media {
+    aspect-ratio: 2 / 1;
+  }
+}
+/* Build-your-own scroll section: Bluebee puts its call-to-action pill right under the title on phones too. */
+@media (max-width: 767px) {
+  .m-sc-go {
+    display: inline-flex;
+    height: 38px;
+    font-size: 13.5px;
+  }
+  .m-sc-frame {
+    width: min(100%, 640px, (100svh - 400px) * 1.25);
+  }
+}
