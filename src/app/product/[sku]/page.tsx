@@ -82,7 +82,9 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
     breadcrumbs([["Home", "/"], [secName, secHref], [p.name, null]]),
   ];
 
-  const images: GalleryImage[] = p.photoUrl ? [{ src: p.photoUrl, alt: p.name, sample: false, fallback: p.art }] : p.art ? [{ src: p.art, alt: p.name, sample: true }] : [];
+  const main: GalleryImage[] = p.photoUrl ? [{ src: p.photoUrl, alt: p.name, sample: false, fallback: p.art }] : p.art ? [{ src: p.art, alt: p.name, sample: true }] : [];
+  // The shop's further photos follow the main one; a broken one just hides.
+  const images: GalleryImage[] = [...main, ...p.morePhotoUrls.map((src, i) => ({ src, alt: `${p.name}, photo ${i + 2}`, sample: false }))];
   const pairs = pairsFor(store, { skip: new Set([p.sku]), bags: gift ? 1 : 0, extras: gift ? 2 : 3, tab: p.tab });
   const care: CareItem[] = [
     { icon: "drop", label: "Wipe with a dry cloth" },
