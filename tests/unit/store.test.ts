@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalogue, stockCap } from "@/lib/store";
+import { buildCatalogue, stockCap, toProduct } from "@/lib/store";
 import { PACKS } from "@/lib/merch";
 import type { ApiProduct } from "@/lib/types";
 
@@ -30,5 +30,15 @@ describe("store", () => {
 
   it("works offline with no catalogue", () => {
     expect(buildCatalogue(null)).toMatchObject({ ok: false, products: [], packs: [] });
+  });
+});
+
+describe("further photos", () => {
+  it("turns the admin's more_photos into this site's /img/{sku}/{id} addresses and drops anything malformed", () => {
+    const base = { sku: "HAIR-001", name: "Pin", category: "Hair Clip", category_slug: "hair-clip", photo_version: 1700000000, price: 80, mrp: null, percent_off: 0, you_save: 0, availability: "in_stock" as const, left: null, material: null, is_new: false };
+    const p = toProduct({ ...base, more_photos: ["0F8E2D3A-1B2C-4D5E-8F90-123456789ABC-1700000001", "../etc/passwd-1", "nope"] });
+    expect(p.photoUrl).toBe("/img/hair-001?v=1700000000");
+    expect(p.morePhotoUrls).toEqual(["/img/hair-001/0f8e2d3a-1b2c-4d5e-8f90-123456789abc?v=1700000001"]);
+    expect(toProduct({ ...base, more_photos: [] }).morePhotoUrls).toEqual([]);
   });
 });

@@ -16,6 +16,10 @@ export function toProduct(p: ApiCatalogue["products"][number]): Product {
     ...p,
     // Served from this site (src/app/img), never straight from the admin.
     photoUrl: p.photo_version ? `/img/${p.sku.toLowerCase()}?v=${p.photo_version}` : null,
+    morePhotoUrls: (p.more_photos ?? []).flatMap((m) => {
+      const hit = /^([0-9a-f-]{36})-(\d{1,12})$/i.exec(m);
+      return hit ? [`/img/${p.sku.toLowerCase()}/${hit[1].toLowerCase()}?v=${hit[2]}`] : [];
+    }),
     art: cardArtFor(p.category_slug, p.name),
     cutout: cutoutFor(p.category_slug),
     sections: sectionsFor(p.category_slug, p.name),
