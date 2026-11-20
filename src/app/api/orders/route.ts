@@ -7,6 +7,6 @@ export async function POST(req: NextRequest) {
   if (tooMany(req)) return NextResponse.json({ error: { code: "slow_down", message: "Too many orders from here. Please wait a few minutes." } }, { status: 429 });
   const b = await readBody(req);
   if (!b) return bad();
-  const { token, lines, delivery, address, pin, phone, gift_note, coupon } = b;
-  return relay("/orders", { token, lines, delivery, address, pin, phone, gift_note, coupon });
+  const { token, lines, delivery, address, pin, phone, updates, gift_note, coupon } = b;
+  return relay("/orders", { token, lines, delivery, address, pin, phone, updates: updates === true, gift_note, coupon });
 }

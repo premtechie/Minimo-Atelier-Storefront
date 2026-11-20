@@ -402,6 +402,7 @@ function Checkout({
           address: needAddr ? addr.trim() : "",
           pin: pick ? "" : pin,
           phone: mob,
+          updates,
           gift_note: giftNote,
           coupon,
           lines: lines.map((l) => ({ name: lineName(l), qty: l.qty, parts: l.parts, note: l.note, detail: l.kind === "build" ? l.detail : undefined, bulk: l.bulk !== false })),
