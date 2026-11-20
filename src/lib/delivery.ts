@@ -63,4 +63,23 @@ export function shortDate(iso: string | null): string | null {
   return new Date(`${iso}T12:00:00+05:30`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
 }
 
+/** Whole days from today (IST) to `iso`, at least 1. */
+export function daysUntil(iso: string | null, now = new Date()): number | null {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  const today = now.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const ms = Date.parse(`${iso}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`);
+  return Number.isFinite(ms) ? Math.max(1, Math.round(ms / 86_400_000)) : null;
+}
+
+/**
+ * How long delivery takes, as the shopper reads it: "3 days" from the
+ * courier's date, or a usual range when the courier gave none.
+ */
+export function etaText(o: { speed: Speed; by: string | null }, pin: string, now = new Date()): string {
+  const n = daysUntil(o.by, now);
+  if (n !== null) return n === 1 ? "1 day" : `${n} days`;
+  if (pin.startsWith("500")) return "2–3 days";
+  return o.speed === "express" ? "3–5 days" : "4–7 days";
+}
+
 export const SPEED_NAME: Record<Speed, string> = { express: "Express", standard: "Standard" };

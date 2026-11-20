@@ -11,7 +11,7 @@ import type { LiteItem } from "@/lib/lite";
 import { useAccount } from "./account-provider";
 import { useAddresses } from "./account-view";
 import { Icon } from "./icon";
-import { fetchQuote, isPin, savePin, savedPin, shortDate, SPEED_NAME, type Quote, type Speed } from "@/lib/delivery";
+import { etaText, fetchQuote, isPin, savePin, savedPin, shortDate, SPEED_NAME, type Quote, type Speed } from "@/lib/delivery";
 import { useShop } from "./shop-provider";
 import { track } from "@/lib/analytics";
 
@@ -431,8 +431,10 @@ function Checkout({
   const when =
     pick || del === "flat"
       ? `Ready ${dayName(2)}`
-      : chosen && shortDate(chosen.by)
-        ? `By ${shortDate(chosen.by)}`
+      : chosen
+        ? shortDate(chosen.by)
+          ? `${etaText(chosen, pin)} · by ${shortDate(chosen.by)}`
+          : `In ${etaText(chosen, pin)}`
         : pin.startsWith("500")
           ? `By ${dayName(3)}`
           : "In 4–7 days";
@@ -583,7 +585,10 @@ function Checkout({
                           <span>
                             {SPEED_NAME[o.speed]} {o.speed === "express" && <Icon name="sparkle" size={12} />}
                           </span>
-                          {shortDate(o.by) && <small>Arrives by {shortDate(o.by)}</small>}
+                          <small>
+                            {etaText(o, pin)}
+                            {shortDate(o.by) ? `, arrives by ${shortDate(o.by)}` : ""}
+                          </small>
                         </span>
                         <span className="d-ship-opt-price">{inr(o.price)}</span>
                       </label>
