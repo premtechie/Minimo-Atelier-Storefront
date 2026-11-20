@@ -10,6 +10,8 @@ import { inr, plural } from "@/lib/format";
 import type { LiteItem } from "@/lib/lite";
 import { Icon } from "./icon";
 import { useShop } from "./shop-provider";
+import { track } from "@/lib/analytics";
+
 
 /*
  * The cart and its checkout sheet, in the approved design's markup: its mm-
@@ -412,6 +414,7 @@ function Checkout({
       if (!res.ok || !data.order) throw new Error(data.error?.message || "We couldn't place your order just now. Please try again.");
       const saved: SavedOrder = { number: data.order.number, token, at: Date.now(), images: lines.map((l) => l.image), order: data.order };
       rememberOrder(saved);
+      track("order_placed", { delivery: del });
       setToken(newToken());
       setStep(1);
       onPlaced(saved);
@@ -432,7 +435,7 @@ function Checkout({
   return (
     <>
       <div className={`e-overlay ${open ? "open" : ""}`} onClick={onClose} aria-hidden="true" />
-      <div ref={box} className={`e-sheet ${open ? "open" : ""}`} role="dialog" aria-modal="true" aria-labelledby="h-co" data-kind="pre" inert={!open}>
+      <div ref={box} className={`e-sheet ${open ? "open" : ""}`} data-clarity-mask="true" role="dialog" aria-modal="true" aria-labelledby="h-co" data-kind="pre" inert={!open}>
         <div className="dz d-pre">
           <div className="d-pre-drag">
             <span className="d-sheet-handle" />

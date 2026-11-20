@@ -8,7 +8,7 @@ export default function Orders() {
   return (
     <>
       <InnerHeader />
-      <main id="main" className="dz e-od">
+      <main id="main" className="dz e-od" data-clarity-mask="true">
         <OrdersList />
       </main>
     </>

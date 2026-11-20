@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Allura, DM_Sans, Montserrat, Varela_Round } from "next/font/google";
+import { Clarity } from "@/components/clarity";
 import { Footer } from "@/components/footer";
 import { WaFab } from "@/components/wa-fab";
 import { SearchSheet } from "@/components/search-sheet";
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <WaFab />
           <SearchSheet />
         </ShopProvider>
+        <Clarity />
       </body>
     </html>
   );
