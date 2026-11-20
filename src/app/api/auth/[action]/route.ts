@@ -6,9 +6,10 @@ const NO_STORE = { "cache-control": "private, no-store" };
 
 // GET  /api/auth/config  → whether sign-in is on (and so whether checkout needs it)
 // GET  /api/auth/me      → { account } for this browser, or { account: null }
-// POST /api/auth/otp     {phone}        → sends a code (with Firebase: logs the request; the browser asks Firebase)
+// POST /api/auth/otp     {phone}        → sends a 4-digit code
 // POST /api/auth/verify  {phone, code}  → signs in; the session goes in an httpOnly cookie
-//                        (or {phone, firebase_token} when the admin's provider is Firebase)
+//                        or, with Firebase: {firebase_token} → signs in, or { needs_profile, email } the first
+//                        time; then {firebase_token, first_name, last_name, phone} makes the account
 // POST /api/auth/logout                 → signs this browser out
 export async function GET(req: NextRequest, ctx: RouteContext<"/api/auth/[action]">) {
   const { action } = await ctx.params;
@@ -40,9 +41,15 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/auth/[actio
   const b = await readBody(req);
   if (!b) return bad();
   if (action === "otp") return passOn(await callAdmin("/auth/otp", { phone: String(b.phone ?? "") }));
-  const proof = typeof b.firebase_token === "string" ? { firebase_token: b.firebase_token.slice(0, 4096) } : { code: String(b.code ?? "") };
-  const out = await callAdmin("/auth/verify", { phone: String(b.phone ?? ""), ...proof, device: deviceName(req.headers.get("user-agent") ?? "") });
+  const str = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : undefined);
+  const proof =
+    typeof b.firebase_token === "string"
+      ? { firebase_token: b.firebase_token.slice(0, 4096), phone: str(b.phone, 20), first_name: str(b.first_name, 40), last_name: str(b.last_name, 40) }
+      : { phone: String(b.phone ?? ""), code: String(b.code ?? "") };
+  const out = await callAdmin("/auth/verify", { ...proof, device: deviceName(req.headers.get("user-agent") ?? "") });
   if (!out || out.status !== 200) return passOn(out);
+  // A first Google or email sign-in: no session yet, the sheet asks for name and mobile.
+  if ((out.data as { needs_profile?: boolean }).needs_profile) return NextResponse.json(out.data, { headers: NO_STORE });
   const { session, account, created } = out.data as { session: string; account: unknown; created: boolean };
   return setSession(NextResponse.json({ account, created }, { headers: NO_STORE }), session, req);
 }
