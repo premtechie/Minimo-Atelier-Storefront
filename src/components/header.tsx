@@ -56,7 +56,7 @@ export function AccountButton({ className = "" }: { className?: string }) {
       </Link>
     );
   }
-  if (!required)
+  if (status !== "loading" && !required)
     return (
       <Link href="/orders" className={className} aria-label="My orders" title="My orders">
         <Icon name="user" size={20} />

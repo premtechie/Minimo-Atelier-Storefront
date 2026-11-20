@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icon";
 import { useShop } from "./shop-provider";
@@ -53,6 +53,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [account, setAccountState] = useState<Account | null>(null);
   const [config, setConfig] = useState<AuthConfig | null>(null);
   const [sheet, setSheet] = useState<Open | null>(null);
+  // A tap on the account icon before the first answer waits for it: the sheet
+  // opens if sign-in is on, otherwise the shopper goes to their orders.
+  const router = useRouter();
+  const early = useRef<Open | null>(null);
+  const loaded = useRef(false);
   const { wish, setWishAll, ready } = useShop();
   const synced = useRef(false);
   const path = usePathname();
@@ -64,7 +69,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       fetch("/api/auth/me").then((r) => r.json()).catch(() => null),
     ]).then(([c, me]) => {
       if (!live) return;
-      setConfig(c && typeof c.available === "boolean" ? c : { available: false, test_mode: false, otp_digits: 4, resend_seconds: 30 });
+      const conf: AuthConfig = c && typeof c.available === "boolean" ? c : { available: false, test_mode: false, otp_digits: 4, resend_seconds: 30 };
+      setConfig(conf);
+      loaded.current = true;
+      if (!conf.available && early.current?.reason === "account") router.push("/orders");
+      early.current = null;
       const a = me?.account ?? null;
       setAccountState(a);
       setStatus(a ? "signed_in" : "signed_out");
@@ -72,7 +81,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     return () => {
       live = false;
     };
-  }, []);
+  }, [router]);
 
   // Signed in: the phone's saved list and the account's are merged, both ways.
   useEffect(() => {
@@ -124,7 +133,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       account,
       config,
       required: !!config?.available,
-      openSignIn: (o = {}) => setSheet(o),
+      openSignIn: (o = {}) => {
+        if (!loaded.current) early.current = o;
+        setSheet(o);
+      },
       signOut: async () => {
         await post("/api/auth/logout");
         setAccountState(null);
