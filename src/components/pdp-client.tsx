@@ -14,6 +14,7 @@ import { addLine, type CartLine, type CartPart } from "@/lib/cart";
 import { inr } from "@/lib/format";
 import { BULK_RULES, bulkRate } from "@/lib/merch";
 import { waLink } from "@/lib/whatsapp";
+import { DeliveryCheck } from "./delivery-check";
 import { Icon, type IconName } from "./icon";
 import { useShop } from "./shop-provider";
 
@@ -129,12 +130,6 @@ const [[TOP_N, TOP_R], [LOW_N, LOW_R]] = BULK_RULES;
 const CHIPS = [10, 15, 20, 25, 30];
 const pct = (r: number) => Math.round(r * 100);
 
-function dayName(days: number) {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
-}
-
 function Ticket({ q, set }: { q: number; set: (n: number) => void }) {
   const rate = bulkRate(q);
   const target = q < LOW_N ? LOW_N : TOP_N;
@@ -175,8 +170,6 @@ export function BuyBox({ item, eyebrow, badge, title }: { item: BuyItem; eyebrow
   const start = item.bulk ? Math.min(20, item.max) : 1;
   const [q, setQ] = useState(Math.max(1, start));
   const [name, setName] = useState("");
-  const [pin, setPin] = useState("");
-  const [pinMsg, setPinMsg] = useState<string | null>(null);
   // The floating add-to-cart pill shows once the main buttons scroll out of view.
   const ctaRef = useRef<HTMLDivElement>(null);
   const [float, setFloat] = useState(false);
@@ -371,26 +364,7 @@ export function BuyBox({ item, eyebrow, badge, title }: { item: BuyItem; eyebrow
         <h2 className="d-set-title" id="h-del">
           Delivery details
         </h2>
-        <form
-          className="d-pin"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!/^\d{6}$/.test(pin)) setPinMsg("Enter a 6-digit pincode.");
-            else if (pin.startsWith("500")) setPinMsg(`Hyderabad: delivered by ${dayName(3)}. Free pickup at our store from ${dayName(2)}.`);
-            else setPinMsg("Courier across India: 4–7 days after packing.");
-          }}
-        >
-          <div className="d-pin-field">
-            <Icon name="pin" size={18} />
-            <input inputMode="numeric" maxLength={6} placeholder="Enter pincode" aria-label="Pincode" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} />
-            <button className="d-pin-btn">Check</button>
-          </div>
-          <p className="d-pin-row" aria-live="polite">
-            <span className="d-pin-date">
-              <Icon name="truck" size={16} /> {pinMsg ?? "Free pickup or Honer Vivantis delivery"}
-            </span>
-          </p>
-        </form>
+        <DeliveryCheck pieces={item.parts.map((p) => ({ sku: p.sku, qty: p.qty * q }))} />
       </section>
       <PromiseTiles className="d-pdp-promise--main" />
 

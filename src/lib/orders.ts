@@ -29,6 +29,9 @@ export type Order = {
   gift_note: string | null;
   items_total: number;
   shipping: number;
+  /** Courier speed the shopper chose and the promised date (absent on older orders). */
+  ship_speed?: "express" | "standard" | null;
+  ship_by?: string | null;
   total: number;
   refunded: number;
   can_cancel: boolean;
