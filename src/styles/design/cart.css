@@ -300,7 +300,9 @@
 .d-btn-line { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 22px; text-decoration: none; }
 .e-sheet[data-kind="pre"] { max-width: 480px; margin: 0 auto; }
 .d-pre { padding: 0 20px 24px; }
-.d-pre-drag { padding-top: 2px; }
+.d-pre-drag { padding-top: 12px; }
+/* One handle per sheet, and a lone action fills the row. */
+.d-pc-actions > :only-child { grid-column: 1 / -1; }
 .d-pre-top { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
 .d-pre-top .d-eyebrow { margin: 0; }
 .d-pre .d-precheckout-title { margin: 0 0 14px; }

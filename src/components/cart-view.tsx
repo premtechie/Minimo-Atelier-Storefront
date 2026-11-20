@@ -432,7 +432,6 @@ function Checkout({
     <>
       <div className={`e-overlay ${open ? "open" : ""}`} onClick={onClose} aria-hidden="true" />
       <div ref={box} className={`e-sheet ${open ? "open" : ""}`} role="dialog" aria-modal="true" aria-labelledby="h-co" data-kind="pre" inert={!open}>
-        <div className="e-grab" />
         <div className="dz d-pre">
           <div className="d-pre-drag">
             <span className="d-sheet-handle" />
