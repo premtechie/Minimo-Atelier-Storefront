@@ -117,7 +117,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       return;
     }
     if (Date.now() - last < SNOOZE_MS) return;
-    const t = setTimeout(() => setSheet({}), POP_AFTER_MS);
+    // Never on top of something the shopper opened themselves (search, the menu, the cart).
+    const busy = () => !!document.querySelector(".s-root.open, [role=dialog][aria-modal=true]:not([inert])");
+    const t = setTimeout(() => {
+      if (!busy()) setSheet({});
+    }, POP_AFTER_MS);
     return () => clearTimeout(t);
   }, [status, config, path, sheet]);
 
