@@ -65,7 +65,9 @@ export function studioData(store: Store): StudioData {
     // Every product of the same kind gets the drawing (Space and Mermaid themed bags
     // both), each named for itself when there are several. A bag from another
     // category that happens to match the name keeps its own photo.
-    const first = live.find((x) => match.test(x.name) && !used.has(x.sku));
+    // Prefer the shop's own packaging (the small jute bag, not a Korean jute tote).
+    const hits = live.filter((x) => match.test(x.name) && !used.has(x.sku));
+    const first = hits.find((x) => x.role === "packaging") ?? hits[0];
     if (!first) continue;
     const same = live.filter((x) => match.test(x.name) && x.category_slug === first.category_slug && !used.has(x.sku));
     same.forEach((p, i) => {
