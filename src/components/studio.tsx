@@ -19,6 +19,7 @@ const SAVE_KEY = "minimo-builds-v1";
 const TRAY_FIRST = 12;
 const BITS = ["#E7B7A8", "#F4D9A1", "#B9DCC9", "#D9C6E8", "#C79A7A"];
 const art = (k: string) => `/art/studio/${k}.webp`;
+const boxImg = (b: Pick<StudioBox, "art" | "img">) => b.img ?? art(b.art);
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let uid = 0;
 const nextU = () => ++uid;
@@ -71,9 +72,9 @@ function BoxArt({
   const style = { "--ar": `${aw}/${ah}`, "--arw": aw, "--arh": ah, "--w": box.w, "--hf": hf ?? box.hf, "--rim": `${(box.rim * 100).toFixed(2)}%` } as CSSProperties;
   const live = !!onOut;
   return (
-    <div ref={boxRef} className={`st-box ${box.hamper ? "is-hamper" : ""} ${state === 1 ? "is-wrapping" : ""} ${state === 2 ? "is-wrapping is-wrapped" : ""} ${className}`} style={style}>
+    <div ref={boxRef} className={`st-box ${box.hamper ? "is-hamper" : ""} ${box.photo ? "is-photo" : ""} ${state === 1 ? "is-wrapping" : ""} ${state === 2 ? "is-wrapping is-wrapped" : ""} ${className}`} style={style}>
       {/* eslint-disable @next/next/no-img-element */}
-      <img className="st-back" src={art(box.art)} alt="" draggable={false} />
+      <img className="st-back" src={boxImg(box)} alt="" draggable={false} />
       {box.hamper && <img className="st-shred st-shred--back" src={art("shred")} alt="" draggable={false} />}
       <div className="st-items" ref={itemsRef}>
         {items.map((it, i) => {
@@ -94,7 +95,7 @@ function BoxArt({
       </div>
       {live && <div className="st-items st-items--ghosts" ref={ghostsRef} aria-hidden="true" />}
       {box.hamper && <img className="st-shred st-shred--front" src={art("shred")} alt="" draggable={false} />}
-      <img className="st-front" src={art(box.art)} alt="" draggable={false} style={box.see ? { opacity: box.see } : undefined} />
+      {!box.photo && <img className="st-front" src={art(box.art)} alt="" draggable={false} style={box.see ? { opacity: box.see } : undefined} />}
       {live && (
         <div className="st-wrap" aria-hidden="true">
           {box.hamper ? <img className="st-lid" src={art("c_lid")} alt="" /> : <img className="st-tissue" src={art("tissue")} alt="" />}
@@ -148,6 +149,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
   const [sheet, setSheet] = useState<null | "all" | "fav">(null);
   const [flash, setFlash] = useState(0);
   const [more, setMore] = useState(false);
+  const [find, setFind] = useState("");
 
   const stageRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -168,6 +170,15 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
   const box = boxes.find((b) => b.key === boxKey) ?? boxes[0];
   const tabs = data.tabs[mode];
   const curTab = tabs.find((t) => t.name === tab) ?? tabs[0];
+  // Search looks through every tab of this mode, so a shopper needn't know where a piece lives.
+  const words = find.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const found = words.length
+    ? [...new Map(tabs.flatMap((t) => t.items).map((p) => [p.sku, p])).values()].filter((p) => {
+        const n = p.name.toLowerCase();
+        return words.every((w) => n.includes(w));
+      })
+    : null;
+  const trayList = found ?? (more ? curTab?.items ?? [] : (curTab?.items ?? []).slice(0, TRAY_FIRST));
   const capNow = cap[mode];
   const tag = rg ? data.tag : null;
   const max = MAX_ITEMS[mode];
@@ -412,6 +423,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
   const pickTab = (t: string) => {
     setTab(t);
     setMore(false);
+    setFind("");
     setTraySwap((n) => n + 1);
   };
   const pickWho = (w: string) => {
@@ -449,7 +461,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
       name: label,
       price: total,
       qty,
-      image: art(box.art),
+      image: boxImg(box),
       parts,
       note: name.trim() || undefined,
       detail: `${box.name}: ${items.map((i) => pieces[i.sku]?.name).join(", ")}`,
@@ -801,7 +813,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
               {boxes.map((b) => (
                 <button key={b.key} type="button" role="radio" aria-checked={b.key === box.key} onClick={(e) => pickBox(b.key, e.currentTarget)}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={art(b.art)} alt="" />
+                  <img src={boxImg(b)} alt="" />
                   <span>
                     {b.name.replace(/ bag$/, "")}
                     <small>{inr(b.price)}</small>
@@ -925,15 +937,33 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
             <h2>{rg ? "Pick fillers" : "Pick gifts"}</h2>
             <span>Real stock, prices per piece</span>
           </div>
+          <label className="st-search">
+            <Icon name="search" size={16} />
+            <input
+              type="search"
+              value={find}
+              onChange={(e) => setFind(e.target.value)}
+              placeholder={rg ? "Search fillers, e.g. eraser, pen, keychain" : "Search gifts"}
+              aria-label={rg ? "Search fillers" : "Search gifts"}
+              enterKeyHint="search"
+              autoComplete="off"
+            />
+            {find && (
+              <button type="button" onClick={() => setFind("")} aria-label="Clear search">
+                <Icon name="x" size={14} />
+              </button>
+            )}
+          </label>
           <div className="st-tabs" role="tablist" aria-label="Kinds of gifts">
             {tabs.map((t) => (
-              <button key={t.name} type="button" role="tab" aria-selected={t.name === curTab.name} onClick={() => pickTab(t.name)}>
+              <button key={t.name} type="button" role="tab" aria-selected={!found && t.name === curTab.name} onClick={() => pickTab(t.name)}>
                 {t.name}
               </button>
             ))}
           </div>
           <div ref={trayRef} key={`${mode}-${traySwap}`} className={`st-tray ${traySwap ? "is-swap" : ""}`}>
-            {(more ? curTab.items : curTab.items.slice(0, TRAY_FIRST)).map((p) => {
+            {found && !found.length && <p className="st-nofind">Nothing matches &ldquo;{find.trim()}&rdquo;. Try a shorter word.</p>}
+            {trayList.map((p) => {
               const n = counts[p.sku] ?? 0;
               const full = p.cap !== null && n >= p.cap;
               return (
@@ -972,7 +1002,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                 </button>
               );
             })}
-            {!more && curTab.items.length > TRAY_FIRST && (
+            {!found && !more && curTab.items.length > TRAY_FIRST && (
               <button type="button" className="st-more" onClick={() => setMore(true)}>
                 <Icon name="plus" size={16} />
                 Show {curTab.items.length - TRAY_FIRST} more

@@ -1,4 +1,4 @@
-import { CONTAINERS, PACKS, RG_TABS, type Container } from "./merch";
+import { BAG_SLUGS, CONTAINERS, PACKS, PHOTO_BAG, RG_TABS, type Container } from "./merch";
 import { featured, stockCap, type Store } from "./store";
 import type { Product } from "./types";
 import type { Mode } from "./studio";
@@ -9,7 +9,7 @@ import type { Mode } from "./studio";
  * public fields the rest of the site shows.
  */
 
-export type StudioBox = Omit<Container, "match"> & { sku: string; price: number; cap: number | null };
+export type StudioBox = Omit<Container, "match"> & { sku: string; price: number; cap: number | null; /** Picture for a photo bag. */ img?: string };
 export type StudioPiece = {
   sku: string;
   name: string;
@@ -60,9 +60,22 @@ function tab(name: string, list: Product[]): StudioTab | null {
 export function studioData(store: Store): StudioData {
   const live = store.live;
   const boxes: StudioBox[] = [];
+  const used = new Set<string>();
   for (const { match, ...c } of CONTAINERS) {
-    const p = live.find((x) => match.test(x.name));
-    if (p) boxes.push({ ...c, sku: p.sku, price: p.price, cap: capOf(p) });
+    // Every product that matches a drawing gets it (Space and Mermaid themed bags both).
+    live.filter((x) => match.test(x.name)).forEach((p, i) => {
+      if (used.has(p.sku)) return;
+      used.add(p.sku);
+      const key = i === 0 ? c.key : `${c.key}-${p.sku.toLowerCase()}`;
+      boxes.push({ ...c, key, name: i === 0 ? c.name : p.name, sku: p.sku, price: p.price, cap: capOf(p) });
+    });
+  }
+  // The rest of the shop's bags, cheapest first, shown with their photo.
+  const photoBags = live
+    .filter((p) => BAG_SLUGS.includes(p.category_slug) && !used.has(p.sku) && !!(p.photoUrl ?? p.art))
+    .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name));
+  for (const p of photoBags) {
+    boxes.push({ ...PHOTO_BAG, key: p.sku.toLowerCase(), art: "", name: p.name, sku: p.sku, price: p.price, cap: capOf(p), img: (p.photoUrl ?? p.art)! });
   }
   const fillers = live.filter((p) => p.role === "filler" && p.tab);
   const rg = RG_TABS.map((t) => tab(t, fillers.filter((p) => p.tab === t)));

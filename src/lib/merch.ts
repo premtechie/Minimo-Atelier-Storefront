@@ -168,6 +168,8 @@ export type Container = {
   sink: number;
   ih: number;
   see?: number;
+  /** A shop photo stands in for drawn art: pieces sit in front of the bag. */
+  photo?: boolean;
 };
 export const CONTAINERS: Container[] = [
   { key: "paper", art: "c_paper", name: "Kraft paper bag", match: /^Brown Bags/i, rim: 0.282, aspect: [368, 599], w: 0.7, hf: 0.62, ox: [0.14, 0.86], sink: 0.3, ih: 0.52 },
@@ -177,6 +179,20 @@ export const CONTAINERS: Container[] = [
   { key: "box", art: "c_box", name: "Gift box", match: /2 IN 1 Empty Box/i, hamper: true, rim: 0.56, aspect: [580, 433], w: 0.86, hf: 0.62, ox: [0.1, 0.9], sink: 0.11, ih: 0.78 },
   { key: "jewel", art: "c_box", name: "Jewellery box", match: /^Jewellery Box/i, hamper: true, rim: 0.56, aspect: [580, 433], w: 0.86, hf: 0.62, ox: [0.1, 0.9], sink: 0.11, ih: 0.78 },
 ];
+
+/**
+ * Every bag the admin sells can hold a return gift. Bags without drawn art in
+ * CONTAINERS show in the studio with their shop photo (or sample picture).
+ */
+export const BAG_SLUGS = [
+  ...PACKAGING.filter((s) => s !== "jewellery-box"),
+  "korean-bags", "korean-jute-bags", "korean-sling-bag", "bow-sling-bag", "embriodory-sling-bag", "round-sling-bag",
+  "rectange-sling-bag", "sunflower-bag", "bubble-sling-bag", "jelly-bags", "glitter-bag", "k-pop", "backpack-bags", "lunch-bags",
+];
+/** How pieces sit in front of a photographed bag. */
+export const PHOTO_BAG: Omit<Container, "key" | "art" | "name" | "match"> = {
+  photo: true, rim: 0.82, aspect: [1, 1], w: 0.78, hf: 0.66, ox: [0.12, 0.88], sink: 0.1, ih: 0.42,
+};
 
 /*
  * Ready-made packs: real SKUs from the admin, priced from today's admin prices
