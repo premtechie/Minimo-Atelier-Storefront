@@ -48,6 +48,7 @@ function BoxArt({
   pieces,
   state = 0,
   tagName,
+  tagged = true,
   className = "",
   boxRef,
   itemsRef,
@@ -60,6 +61,8 @@ function BoxArt({
   pieces: Record<string, StudioPiece>;
   state?: 0 | 1 | 2;
   tagName?: string;
+  /** False when the shopper turned the name tag off. */
+  tagged?: boolean;
   className?: string;
   boxRef?: React.Ref<HTMLDivElement>;
   itemsRef?: React.Ref<HTMLDivElement>;
@@ -104,7 +107,7 @@ function BoxArt({
               <img className="st-gcard" src={art("card")} alt="" />
               <img className="st-sprig" src={art("sprig")} alt="" />
             </>
-          ) : (
+          ) : tagged && (
             <span className="st-tagwrap">
               <img className="st-tag" src={art("tag")} alt="" />
               <b className="st-tagname">{tagName || "For you"}</b>
@@ -150,6 +153,8 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
   const [flash, setFlash] = useState(0);
   const [more, setMore] = useState(false);
   const [find, setFind] = useState("");
+  /** The ₹10 wish tag on a return-gift bag: on by default, the shopper may drop it. */
+  const [withTag, setWithTag] = useState(true);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -180,17 +185,17 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
     : null;
   const trayList = found ?? (more ? curTab?.items ?? [] : (curTab?.items ?? []).slice(0, TRAY_FIRST));
   const capNow = cap[mode];
-  const tag = rg ? data.tag : null;
+  const tag = rg && withTag ? data.tag : null;
   const max = MAX_ITEMS[mode];
 
   const priceOf = useCallback(
-    (b: { m: Mode; box: string; items: string[] }) => {
+    (b: { m: Mode; box: string; items: string[]; noTag?: boolean }) => {
       const bx = data.boxes.find((x) => x.key === b.box);
-      return b.items.reduce((s, k) => s + (pieces[k]?.price ?? 0), 0) + (bx?.price ?? 0) + (b.m === "rg" && data.tag ? data.tag.price : 0);
+      return b.items.reduce((s, k) => s + (pieces[k]?.price ?? 0), 0) + (bx?.price ?? 0) + (b.m === "rg" && data.tag && !b.noTag ? data.tag.price : 0);
     },
     [data, pieces],
   );
-  const total = box ? priceOf({ m: mode, box: box.key, items: items.map((i) => i.sku) }) : 0;
+  const total = box ? priceOf({ m: mode, box: box.key, items: items.map((i) => i.sku), noTag: !withTag }) : 0;
   const counts = useMemo(() => {
     const m: Record<string, number> = {};
     for (const i of items) m[i.sku] = (m[i.sku] ?? 0) + 1;
@@ -473,7 +478,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
   /* ---------- saved builds ---------- */
   const save = () => {
     if (!box || !items.length) return;
-    const body = { m: mode, box: box.key, items: items.map((i) => i.sku), cap: capNow, name: name.trim(), who: who[mode], fav: false };
+    const body = { m: mode, box: box.key, items: items.map((i) => i.sku), cap: capNow, name: name.trim(), who: who[mode], fav: false, noTag: rg && !withTag ? true : undefined };
     let k = editing;
     let list: SavedBuild[];
     let isNew = false;
@@ -536,6 +541,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
     if (!b) return;
     setMode(b.m);
     setBoxKey(b.box);
+    setWithTag(!b.noTag);
     setItems(b.items.filter((s) => pieces[s]).map((sku) => ({ sku, u: nextU() })));
     setName(b.name || "");
     setWrap(0);
@@ -832,6 +838,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
               pieces={pieces}
               state={wrap}
               tagName={name.trim()}
+              tagged={!!tag}
               className={boxIn ? "is-in" : ""}
               boxRef={boxRef}
               itemsRef={itemsRef}
@@ -855,9 +862,17 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                 <i style={{ transform: `scaleX(${pct.toFixed(3)})` }} />
               </div>
               <div className="st-meter-sub">
-                {items.length
-                  ? `${plural(items.length, "piece", "pieces")} + ${box.name.toLowerCase()}${tag ? " and name tag" : ""}`
-                  : `Drag a gift into the ${box.hamper ? "hamper" : "bag"}`}
+                <span>
+                  {items.length
+                    ? `${plural(items.length, "piece", "pieces")} + ${box.name.toLowerCase()}${tag ? " and name tag" : ""}`
+                    : `${box.name} ${inr(box.price)}. Drag a gift into the ${box.hamper ? "hamper" : "bag"}`}
+                </span>
+                {rg && data.tag && (
+                  <button type="button" role="switch" aria-checked={withTag} className="st-tagswitch" onClick={() => setWithTag((v) => !v)} disabled={!!wrap}>
+                    <i aria-hidden="true" />
+                    Name tag +{inr(data.tag.price)}
+                  </button>
+                )}
               </div>
             </div>
           </div>

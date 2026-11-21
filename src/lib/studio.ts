@@ -13,6 +13,8 @@ export type SavedBuild = {
   name: string;
   who: string;
   fav: boolean;
+  /** True when the shopper left out the name tag (return gifts). */
+  noTag?: boolean;
   /** Hearted by whoever shared it with you. */
   sharedFav?: boolean;
   t: number;
