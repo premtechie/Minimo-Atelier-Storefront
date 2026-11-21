@@ -44,16 +44,19 @@ const capOf = (p: Product) => {
   return Number.isFinite(c) ? c : null;
 };
 
-export function toPiece(p: Product): StudioPiece | null {
-  const img = p.cutout ? `/art/studio/${p.cutout}.webp` : p.photoUrl ?? p.art;
+/** Shown for a product the shop hasn't photographed and has no sample picture for. */
+const NO_PHOTO = "/art/studio/no-photo.svg";
+
+export function toPiece(p: Product, orPlaceholder = false): StudioPiece | null {
+  const img = (p.cutout ? `/art/studio/${p.cutout}.webp` : p.photoUrl ?? p.art) ?? (orPlaceholder ? NO_PHOTO : null);
   if (!img) return null;
   return { sku: p.sku, name: p.name, price: p.price, cap: capOf(p), img, cut: !!p.cutout, size: (p.cutout && SIZE[p.cutout]) || 0.8 };
 }
 
-function tab(name: string, list: Product[]): StudioTab | null {
+function tab(name: string, list: Product[], limit = PER_TAB, orPlaceholder = false): StudioTab | null {
   // Cut-outs first: they sit in the bag like the real thing.
   const sorted = featured(list).sort((a, b) => Number(!!b.cutout) - Number(!!a.cutout));
-  const items = sorted.map(toPiece).filter((x): x is StudioPiece => !!x).slice(0, PER_TAB);
+  const items = sorted.map((p) => toPiece(p, orPlaceholder)).filter((x): x is StudioPiece => !!x).slice(0, limit);
   return items.length ? { name, items } : null;
 }
 
@@ -93,9 +96,12 @@ export function studioData(store: Store): StudioData {
     tab("Little extras", fillers),
   ];
   const tagP = live.find((p) => p.sku === "TAGS-001") ?? live.find((p) => p.role === "tag");
+  // Everything the shop sells (bar bags-as-packaging and tags), so a shopper
+  // can put any product in, and search finds it.
+  const all = tab("All", notWrap, Infinity, true);
   return {
     boxes,
-    tabs: { rg: rg.filter((t): t is StudioTab => !!t), hm: hm.filter((t): t is StudioTab => !!t) },
+    tabs: { rg: [all, ...rg].filter((t): t is StudioTab => !!t), hm: [all, ...hm].filter((t): t is StudioTab => !!t) },
     tag: tagP ? { sku: tagP.sku, price: tagP.price, cap: capOf(tagP) } : null,
   };
 }
@@ -107,7 +113,7 @@ export function studioStart(store: Store, data: StudioData, q: { mode?: string; 
     const bag = store.bySku.get(pack.bag);
     const box = bag ? data.boxes.find((b) => b.sku === bag.sku) : undefined;
     const items = pack.items.flatMap((it) => Array.from({ length: it.qty }, () => it.sku)).filter((s) => store.bySku.has(s));
-    const extra = items.map((s) => store.bySku.get(s)!).map(toPiece).filter((x): x is StudioPiece => !!x);
+    const extra = items.map((s) => store.bySku.get(s)!).map((p) => toPiece(p)).filter((x): x is StudioPiece => !!x);
     return { mode: "rg", box: box?.key, items: items.filter((s) => extra.some((x) => x.sku === s)), extra };
   }
   return { mode: q.mode === "hampers" ? "hm" : "rg" };

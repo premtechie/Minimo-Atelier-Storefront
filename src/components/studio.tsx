@@ -943,8 +943,8 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
               type="search"
               value={find}
               onChange={(e) => setFind(e.target.value)}
-              placeholder={rg ? "Search fillers, e.g. eraser, pen, keychain" : "Search gifts"}
-              aria-label={rg ? "Search fillers" : "Search gifts"}
+              placeholder="Search all products, e.g. marker, eraser, keychain"
+              aria-label="Search all products"
               enterKeyHint="search"
               autoComplete="off"
             />

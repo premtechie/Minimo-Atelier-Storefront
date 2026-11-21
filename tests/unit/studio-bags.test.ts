@@ -35,3 +35,22 @@ describe("studio bags", () => {
     expect(rg.find((b) => b.sku === "KORE-001")!.photo).toBe(true);
   });
 });
+
+describe("studio All tab", () => {
+  it("lists every product except bags-as-packaging and tags, first in both modes", () => {
+    const store = buildCatalogue({
+      categories: [],
+      products: [
+        p("ACRY-001", "Acrylic Marker (Twin Tip)", "Art Supplies", "art-supplies", 160),
+        p("PENS-001", "Erasable Pen", "Pens", "pens", 30),
+        p("PACK-003", "Brown Bags - 8 x 10", "Packaging", "packaging", 20),
+        p("TAGS-001", "Wish tag", "Tags", "tags", 5),
+      ],
+    });
+    const d = studioData(store);
+    for (const m of ["rg", "hm"] as const) {
+      expect(d.tabs[m][0].name).toBe("All");
+      expect(d.tabs[m][0].items.map((x) => x.sku).sort()).toEqual(["ACRY-001", "PENS-001"]);
+    }
+  });
+});
