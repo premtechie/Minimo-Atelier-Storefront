@@ -865,7 +865,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                 <span>
                   {items.length
                     ? `${plural(items.length, "piece", "pieces")} + ${box.name.toLowerCase()}${tag ? " and name tag" : ""}`
-                    : `${box.name} ${inr(box.price)}. Drag a gift into the ${box.hamper ? "hamper" : "bag"}`}
+                    : `${box.name.replace(/ bag$/i, "")} bag ${inr(box.price)}`}
                 </span>
                 {rg && data.tag && (
                   <button type="button" role="switch" aria-checked={withTag} className="st-tagswitch" onClick={() => setWithTag((v) => !v)} disabled={!!wrap}>
