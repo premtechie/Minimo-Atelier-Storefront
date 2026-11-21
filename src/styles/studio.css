@@ -327,3 +327,17 @@
 @media (min-width: 768px) { .st-more { width: auto; min-height: 120px; } }
 /* The design uses the browser's own small size (smaller), not the reset's 80%. */
 .st-meter-val small { font-size: smaller; }
+
+/* A bag shown by its shop photo: pieces sit in front of it, and the photo's
+   own backdrop fades into the stage. */
+.st-box.is-photo .st-back { filter: none; border-radius: 22%; -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%); mask-image: radial-gradient(closest-side, #000 72%, transparent 100%); }
+.st-boxes button img[src^="/img/"] { border-radius: 10px; object-fit: cover; }
+
+/* filler search, under the tray heading */
+.st-search { order: 1; position: relative; display: flex; align-items: center; gap: 8px; height: 42px; margin: 0 0 10px; padding: 0 10px 0 14px; border-radius: 99px; border: 1px solid var(--line, #eadfd8); background: #fff; color: var(--fg-soft, #6b5a52); transition: border-color .2s, box-shadow .2s; }
+.st-search:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(107, 68, 51, .12); }
+.st-search input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; font: 400 16px/1 var(--ff-ui); color: var(--fg, #3b2a23); -webkit-appearance: none; appearance: none; }
+.st-search input::-webkit-search-cancel-button { display: none; }
+.st-search button { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 0; background: var(--cocoa-50); color: var(--fg-soft, #6b5a52); cursor: pointer; }
+.st-nofind { grid-column: 1 / -1; margin: 8px 0; font: 400 14px/1.4 var(--ff-ui); color: var(--fg-soft, #6b5a52); }
+@media (min-width: 768px) { .st-search input { font-size: 14px; } }
