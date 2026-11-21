@@ -62,12 +62,16 @@ export function studioData(store: Store): StudioData {
   const boxes: StudioBox[] = [];
   const used = new Set<string>();
   for (const { match, ...c } of CONTAINERS) {
-    // Every product that matches a drawing gets it (Space and Mermaid themed bags both).
-    live.filter((x) => match.test(x.name)).forEach((p, i) => {
-      if (used.has(p.sku)) return;
+    // Every product of the same kind gets the drawing (Space and Mermaid themed bags
+    // both), each named for itself when there are several. A bag from another
+    // category that happens to match the name keeps its own photo.
+    const first = live.find((x) => match.test(x.name) && !used.has(x.sku));
+    if (!first) continue;
+    const same = live.filter((x) => match.test(x.name) && x.category_slug === first.category_slug && !used.has(x.sku));
+    same.forEach((p, i) => {
       used.add(p.sku);
       const key = i === 0 ? c.key : `${c.key}-${p.sku.toLowerCase()}`;
-      boxes.push({ ...c, key, name: i === 0 ? c.name : p.name, sku: p.sku, price: p.price, cap: capOf(p) });
+      boxes.push({ ...c, key, name: same.length > 1 ? p.name : c.name, sku: p.sku, price: p.price, cap: capOf(p) });
     });
   }
   // The rest of the shop's bags, cheapest first, shown with their photo.
