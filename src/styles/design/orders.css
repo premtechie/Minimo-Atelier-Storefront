@@ -130,6 +130,18 @@
 .e-od-tl li.is-now .e-od-tl-txt time { color: #4f7a5a; }
 .e-od-tl-txt .e-od-btn { margin-top: 8px; }
 .e-od-track { display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; font: 600 12.5px/1 var(--font-sans); color: var(--brand); }
+/* The parcel's tracking ID and a link to follow it, once it ships. */
+.e-od-trk { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px; margin-top: 12px; padding: 12px 12px 12px 14px; border-radius: 16px; background: #fff; border: 1px solid var(--line, #eadfd8); font: 400 13px/1.4 var(--font-sans); color: var(--fg-soft, #6b5a52); }
+.e-od-trk b { font-weight: 700; color: var(--fg, #3b2a23); letter-spacing: .02em; word-break: break-all; }
+.e-od-trk-btn { height: 40px; padding: 0 16px; font-size: 13.5px; gap: 4px; }
+.dz a.e-od-track, .dz a.e-od-trk-link { color: var(--brand); }
+.e-od-trk-link { font-weight: 600; text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
+.e-od-scans { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.e-od-scans li { display: grid; gap: 2px; padding-left: 14px; border-left: 2px solid var(--mm-primary-100, #ecdcd2); }
+.e-od-scans li:first-child { border-left-color: #4f7a5a; }
+.e-od-scans b { font: 600 13.5px/1.3 var(--font-sans); color: var(--fg, #3b2a23); }
+.e-od-scans span { font: 400 12.5px/1.4 var(--font-sans); color: var(--fg-soft, #6b5a52); }
+.e-od-scans time { font: 500 11.5px/1.2 var(--font-sans); color: #9a877d; }
 .e-od-items { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
 .e-od-it { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; color: inherit; text-decoration: none; }
 a.e-od-it { margin: -6px; padding: 6px; border-radius: 18px; transition: background-color .15s; }
