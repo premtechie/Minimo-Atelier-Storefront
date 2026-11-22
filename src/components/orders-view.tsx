@@ -13,6 +13,7 @@ import {
   DELIVERY_NAME,
   current,
   eta,
+  lineHref,
   fmtDate,
   dayAfter,
   isPast,
@@ -379,7 +380,7 @@ export function OrderCard({ s }: { s: SavedOrder }) {
 
 /* ---------------- One order ---------------- */
 
-export function OrderDetail({ number }: { number: string }) {
+export function OrderDetail({ number, links = {} }: { number: string; links?: Record<string, string> }) {
   const { saved, mounted, state, refresh } = useOrders();
   const { toast } = useShop();
   const s = saved.find((x) => x.number === number);
@@ -526,23 +527,38 @@ export function OrderDetail({ number }: { number: string }) {
           <section className="e-od-sec">
             <h2>{plural(n, "piece", "pieces")} in this order</h2>
             <ul className="e-od-items">
-              {o.lines.map((l, i) => (
-                <li key={i}>
-                  <span className="e-od-it-img">
-                    <SafeImg src={s.images?.[i] || (l.sku ? `/img/${l.sku}` : undefined)} fallback={l.sku ? `/img/${l.sku}` : null} alt="" loading="lazy" decoding="async" />
-                  </span>
-                  <span className="e-od-it-txt">
-                    <b>{l.name}</b>
-                    {l.note && <small>Name tag: {l.note}</small>}
-                    {l.unit !== null && (
-                      <small>
-                        {inr(l.unit)} × {l.qty}
-                      </small>
+              {o.lines.map((l, i) => {
+                const href = lineHref(l, links);
+                const body = (
+                  <>
+                    <span className="e-od-it-img">
+                      <SafeImg src={s.images?.[i] || (l.sku ? `/img/${l.sku}` : undefined)} fallback={l.sku ? `/img/${l.sku}` : null} alt="" loading="lazy" decoding="async" />
+                    </span>
+                    <span className="e-od-it-txt">
+                      <b>{l.name}</b>
+                      {l.note && <small>Name tag: {l.note}</small>}
+                      {l.unit !== null && (
+                        <small>
+                          {inr(l.unit)} × {l.qty}
+                        </small>
+                      )}
+                    </span>
+                    {l.total !== null && <b className="e-od-it-amt">{inr(l.total)}</b>}
+                  </>
+                );
+                // The whole row opens the product's own page; a custom bag has none.
+                return (
+                  <li key={i}>
+                    {href ? (
+                      <Link className="e-od-it" href={href}>
+                        {body}
+                      </Link>
+                    ) : (
+                      <div className="e-od-it">{body}</div>
                     )}
-                  </span>
-                  {l.total !== null && <b className="e-od-it-amt">{inr(l.total)}</b>}
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </section>
         </div>
