@@ -7,7 +7,8 @@ import { Icon } from "./icon";
 import { useShop } from "./shop-provider";
 import type { CartPart } from "@/lib/cart";
 import { inr, plural } from "@/lib/format";
-import { buildName, CAPS, decodeShare, encodeShare, itemStyle, MAX_ITEMS, slots, tabForWho, WHO, type Mode, type SavedBuild } from "@/lib/studio";
+import { buildName, CAPS, decodeShare, encodeShare, itemStyle, MAX_ITEMS, slots, tabForWho, topStyles, WHO, type Mode, type SavedBuild } from "@/lib/studio";
+import { TOP_H, TOP_W, topFrame } from "@/lib/merch";
 import type { StudioBox, StudioData, StudioPiece, StudioStart } from "@/lib/studio-data";
 
 type It = { sku: string; u: number };
@@ -70,6 +71,7 @@ function BoxArt({
   onOut?: (u: number) => void;
   hf?: number;
 }) {
+  if (box.top) return <TopArt {...{ box, items, pieces, state, tagName, tagged, className, boxRef, itemsRef, ghostsRef, onOut }} />;
   const s = slots(items.length, box);
   const [aw, ah] = box.aspect;
   const style = { "--ar": `${aw}/${ah}`, "--arw": aw, "--arh": ah, "--w": box.w, "--hf": hf ?? box.hf, "--rim": `${(box.rim * 100).toFixed(2)}%` } as CSSProperties;
@@ -114,6 +116,91 @@ function BoxArt({
             </span>
           )}
         </div>
+      )}
+      {/* eslint-enable @next/next/no-img-element */}
+    </div>
+  );
+}
+
+/** Lines under the photo while the pack closes, one per photo. */
+const TOP_STEPS = {
+  bag: ["Tissue tucked in over the gifts", "Handles together, tag tied on"],
+  box: ["Tissue folded over, left then right", "Lid on, ribbon tied"],
+  potli: ["Drawstrings pulled, the mouth gathers", "Bow tied"],
+} as const;
+
+/** The pack seen from above: gifts lie inside its opening, and it closes in real photos. */
+function TopArt({
+  box,
+  items,
+  pieces,
+  state = 0,
+  tagName,
+  tagged = true,
+  className = "",
+  boxRef,
+  itemsRef,
+  ghostsRef,
+  onOut,
+}: {
+  box: StudioBox;
+  items: It[];
+  pieces: Record<string, StudioPiece>;
+  state?: 0 | 1 | 2;
+  tagName?: string;
+  tagged?: boolean;
+  className?: string;
+  boxRef?: React.Ref<HTMLDivElement>;
+  itemsRef?: React.Ref<HTMLDivElement>;
+  ghostsRef?: React.Ref<HTMLDivElement>;
+  onOut?: (u: number) => void;
+}) {
+  const t = box.top!;
+  const st = topStyles(items.length, t, items.map((it) => pieces[it.sku]?.size ?? 1));
+  const style = { "--ar": `${TOP_W}/${TOP_H}`, "--arw": TOP_W, "--arh": TOP_H, "--clip": t.clip } as CSSProperties;
+  const live = !!onOut;
+  // A bag without the name tag stops at the tissue.
+  const last = t.set === "bag" && !tagged ? 1 : 2;
+  return (
+    <div
+      ref={boxRef}
+      className={`st-box is-top is-top-${t.set} ${box.hamper ? "is-hamper" : ""} ${state === 1 ? "is-wrapping" : ""} ${state === 2 ? "is-wrapping is-wrapped" : ""} ${className}`}
+      style={style}
+    >
+      {/* eslint-disable @next/next/no-img-element */}
+      <img className="st-top-f st-top-f0" src={topFrame(t, 0)} alt="" draggable={false} />
+      <div className="st-top-in">
+        <div className="st-items" ref={itemsRef}>
+          {items.map((it, i) => {
+            const p = pieces[it.sku];
+            if (!p) return null;
+            const img = <SafeImg src={p.img} alt="" draggable={false} />;
+            return live ? (
+              <button key={it.u} type="button" className={`st-it ${p.cut ? "" : "is-photo"}`} data-u={it.u} style={st[i]} aria-label={`Take out ${p.name}`} onClick={() => onOut(it.u)}>
+                {img}
+              </button>
+            ) : (
+              <span key={it.u} className={`st-it ${p.cut ? "" : "is-photo"}`} style={st[i]}>
+                {img}
+              </span>
+            );
+          })}
+        </div>
+        <i className="st-top-shade" style={{ background: t.shade }} />
+      </div>
+      {live && <div className="st-items st-items--ghosts" ref={ghostsRef} aria-hidden="true" />}
+      {live && (
+        <div className="st-wrap" aria-hidden="true">
+          <img className="st-top-f st-top-f1" src={topFrame(t, 1)} alt="" />
+          {last === 2 && <img className="st-top-f st-top-f2" src={topFrame(t, 2)} alt="" />}
+          {t.set === "bag" && last === 2 && tagName && <b className="st-top-name">{tagName}</b>}
+        </div>
+      )}
+      {live && state > 0 && (
+        <span className="st-top-step" aria-hidden="true">
+          <span>{TOP_STEPS[t.set][0]}</span>
+          {last === 2 && <span>{TOP_STEPS[t.set][1]}</span>}
+        </span>
       )}
       {/* eslint-enable @next/next/no-img-element */}
     </div>
@@ -280,6 +367,24 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
     meterRef.current?.animate([{ translate: "0 0" }, { translate: "-5px 0" }, { translate: "5px 0" }, { translate: "-2px 0" }, { translate: "0 0" }], { duration: 380 });
   };
 
+  const land = (el: HTMLElement, delay: number) => {
+    const at = (k: number) => `translate(-50%, 0) rotate(var(--r)) scale(${k})`;
+    el.animate(
+      [
+        { transform: at(1.55), opacity: 0, filter: "blur(3px)" },
+        { transform: at(1.25), opacity: 1, filter: "blur(1px)", offset: 0.35 },
+        { transform: at(0.97), filter: "blur(0)", offset: 0.78 },
+        { transform: at(1.01), offset: 0.9 },
+        { transform: at(1) },
+      ],
+      { duration: 650, delay, easing: "cubic-bezier(.45,0,.4,1)", fill: "backwards" },
+    );
+    el.querySelector("img")?.animate(
+      [{ filter: "drop-shadow(14px 18px 12px rgba(45,25,12,.12))" }, { filter: "drop-shadow(4px 6px 4px rgba(45,25,12,.32)) drop-shadow(1px 1px 1px rgba(45,25,12,.35))" }],
+      { duration: 520, delay, easing: "ease-in", fill: "backwards" },
+    );
+  };
+
   // A new piece flies from the tray (or the finger) and lands in its slot.
   useLayoutEffect(() => {
     const f = fly.current;
@@ -287,6 +392,17 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
       fly.current = null;
       const el = itemsRef.current?.querySelector<HTMLElement>(`[data-u="${f.u}"]`);
       if (!el || reduced()) return burst();
+      if (box?.top) {
+        // Seen from above, a gift falls away from the camera: big and soft
+        // first, then it lands, its shadow tightening under it.
+        land(el, 0);
+        const to = el.getBoundingClientRect();
+        setTimeout(() => {
+          wobble();
+          burst(to.left + to.width / 2, to.top + to.height / 2);
+        }, 480);
+        return;
+      }
       const to = el.getBoundingClientRect();
       const tx = to.left + to.width / 2;
       const ty = to.top + to.height / 2;
@@ -312,6 +428,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
     if (dropIn.current) {
       dropIn.current = false;
       if (reduced()) return;
+      if (box?.top) return itemsRef.current?.querySelectorAll<HTMLElement>(".st-it").forEach((el, i) => land(el, 120 + i * 70));
       itemsRef.current?.querySelectorAll<HTMLElement>(".st-it").forEach((el, i) =>
         el.animate([{ transform: "translate(-50%, -120px) rotate(var(--r))", opacity: 0 }, { transform: "translate(-50%, 0) rotate(var(--r))", opacity: 1 }], {
           duration: 520,
@@ -321,6 +438,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
         }),
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per change of the pieces
   }, [items]);
 
   // A saved build shrinks into its card in the list.
@@ -451,7 +569,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
     setTimeout(() => {
       setWrap((w) => (w ? 2 : w));
       burst();
-    }, reduced() ? 0 : 650);
+    }, reduced() ? 0 : box?.top ? (box.top.set === "bag" && !tag ? 1100 : box.top.ms) : 650);
     setGuests((g) => Math.max(1, Math.min(g, maxGuests)));
     if (window.innerWidth < 768) setTimeout(() => doneRef.current?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "center" }), 900);
   };

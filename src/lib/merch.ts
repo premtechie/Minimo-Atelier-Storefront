@@ -170,14 +170,52 @@ export type Container = {
   see?: number;
   /** A shop photo stands in for drawn art: pieces sit in front of the bag. */
   photo?: boolean;
+  /** Overhead photos: the pack is shown from above as it fills, and closes for real. */
+  top?: TopView;
 };
+
+/**
+ * An overhead view of a pack. Three photos from one camera position: open,
+ * half closed and closed. Gifts sit inside the opening (measured in pixels of
+ * the 1368 x 772 photos).
+ */
+export type TopView = {
+  set: "bag" | "box" | "potli";
+  /** The opening, as a CSS clip-path in % of the photo. */
+  clip: string;
+  /** Where gifts may sit, in photo pixels. */
+  area: { x: number; y: number; w: number; h: number };
+  /** Size of one gift, in photo pixels. */
+  size: number;
+  /** Shadow cast by the walls of the pack onto the gifts. */
+  shade: string;
+  /** How long closing it takes, in ms. */
+  ms: number;
+};
+export const TOP_W = 1368;
+export const TOP_H = 772;
+export const TOP: Record<TopView["set"], TopView> = {
+  bag: {
+    set: "bag", clip: "polygon(23.8% 25.9%, 75.1% 25.9%, 74.7% 73.6%, 23.4% 73.6%)", area: { x: 420, y: 262, w: 525, h: 268 }, size: 175, ms: 1850,
+    shade: "radial-gradient(60% 75% at 50% 50%, transparent 55%, rgba(60,35,15,.25) 100%)",
+  },
+  box: {
+    set: "box", clip: "polygon(22% 17.5%, 77.9% 17.5%, 77.9% 81.6%, 22% 81.6%)", area: { x: 345, y: 170, w: 680, h: 430 }, size: 185, ms: 2350,
+    shade: "linear-gradient(to bottom, rgba(40,20,10,.16), transparent 10%), linear-gradient(to right, rgba(40,20,10,.1), transparent 7%, transparent 93%, rgba(40,20,10,.1))",
+  },
+  potli: {
+    set: "potli", clip: "ellipse(14.6% 23.5% at 49.1% 46%)", area: { x: 545, y: 238, w: 255, h: 228 }, size: 135, ms: 2200,
+    shade: "radial-gradient(15% 24% at 49.1% 46%, transparent 62%, rgba(110,40,50,.3) 100%)",
+  },
+};
+export const topFrame = (t: Pick<TopView, "set">, i: 0 | 1 | 2) => `/art/studio/top/${t.set}-${i}.webp`;
 export const CONTAINERS: Container[] = [
-  { key: "paper", art: "c_paper", name: "Kraft paper bag", match: /^Brown Bags/i, rim: 0.282, aspect: [368, 599], w: 0.7, hf: 0.62, ox: [0.14, 0.86], sink: 0.3, ih: 0.52 },
+  { key: "paper", art: "c_paper", name: "Kraft paper bag", match: /^Brown Bags/i, rim: 0.282, aspect: [368, 599], w: 0.7, hf: 0.62, ox: [0.14, 0.86], sink: 0.3, ih: 0.52, top: TOP.bag },
   { key: "heart", art: "c_heart", name: "Heart translucent bag", match: /^Heart Shape/i, rim: 0.305, aspect: [360, 596], w: 0.7, hf: 0.62, ox: [0.14, 0.86], sink: 0.3, ih: 0.52, see: 0.62 },
   { key: "brown", art: "c_brown", name: "Themed bag", match: /Theme Bag$/i, rim: 0.12, aspect: [442, 496], w: 0.7, hf: 0.5, ox: [0.12, 0.88], sink: 0.3, ih: 0.52 },
   { key: "jute", art: "c_jute", name: "Jute window bag", match: /Jute Bag/i, rim: 0.249, aspect: [448, 590], w: 0.72, hf: 0.6, ox: [0.12, 0.88], sink: 0.3, ih: 0.52 },
-  { key: "box", art: "c_box", name: "Gift box", match: /2 IN 1 Empty Box/i, hamper: true, rim: 0.56, aspect: [580, 433], w: 0.86, hf: 0.62, ox: [0.1, 0.9], sink: 0.11, ih: 0.78 },
-  { key: "jewel", art: "c_box", name: "Jewellery box", match: /^Jewellery Box/i, hamper: true, rim: 0.56, aspect: [580, 433], w: 0.86, hf: 0.62, ox: [0.1, 0.9], sink: 0.11, ih: 0.78 },
+  { key: "box", art: "c_box", name: "Gift box", match: /2 IN 1 Empty Box/i, hamper: true, rim: 0.56, aspect: [580, 433], w: 0.86, hf: 0.62, ox: [0.1, 0.9], sink: 0.11, ih: 0.78, top: TOP.box },
+  { key: "jewel", art: "c_box", name: "Jewellery box", match: /^Jewellery Box/i, hamper: true, rim: 0.56, aspect: [580, 433], w: 0.86, hf: 0.62, ox: [0.1, 0.9], sink: 0.11, ih: 0.78, top: TOP.box },
 ];
 
 /**

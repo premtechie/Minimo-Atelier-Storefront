@@ -1,4 +1,4 @@
-import type { Container } from "./merch";
+import { TOP_H, TOP_W, type Container, type TopView } from "./merch";
 
 export type Mode = "rg" | "hm";
 
@@ -79,6 +79,50 @@ export function itemStyle(s: Slot, i: number, c: Pick<Container, "ih" | "hamper"
     "--r": `${s.rot.toFixed(1)}deg`,
     zIndex: s.row ? 20 + i : 10 + i,
   } as React.CSSProperties;
+}
+
+/**
+ * Where n pieces lie in an overhead pack: rows across a bag or hamper, a ring
+ * round a potli. Each piece is centred on its spot and sized to fit, in % of
+ * the photo.
+ */
+export function topStyles(n: number, t: TopView, sizes: number[] = []) {
+  const { x, y, w, h } = t.area;
+  const ring = t.set === "potli";
+  const rows = ring ? 1 : t.set === "box" ? (n > 6 ? 3 : n > 2 ? 2 : 1) : n > 3 ? 2 : 1;
+  const per = ring ? Math.max(1, Math.min(3, n)) : Math.ceil(n / rows);
+  const size = Math.min(t.size * (n <= 1 ? 1.25 : 1), (w / per) * 1.15, (h / rows) * 1.2);
+  const spots: { x: number; y: number }[] = [];
+  if (ring) {
+    const cx = x + w / 2;
+    const cy = y + h / 2;
+    const around = n === 1 ? 0 : n >= 5 ? n - 1 : n;
+    for (let i = 0; i < around; i++) {
+      const a = -Math.PI / 2 + (i / around) * Math.PI * 2 + 0.4;
+      spots.push({ x: cx + w * 0.3 * Math.cos(a), y: cy + h * 0.28 * Math.sin(a) });
+    }
+    if (n === 1 || n >= 5) spots.push({ x: cx, y: cy });
+  } else {
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(i / per);
+      const k = i % per;
+      const cnt = r === rows - 1 ? n - per * (rows - 1) : per;
+      spots.push({ x: x + w * ((k + 0.5) / cnt), y: rows === 1 ? y + h / 2 : y + h * ((r + 0.5) / rows) });
+    }
+  }
+  return spots.map((p, i) => {
+    // Cut-outs are sized to look right in the side view; keep them close here.
+    const s = size * Math.min(1.15, Math.max(0.8, sizes[i] ?? 1));
+    const rot = (((i * 37 + n * 11) % 13) - 6) * 2.2;
+    return {
+      left: `${((p.x / TOP_W) * 100).toFixed(2)}%`,
+      bottom: `${(((TOP_H - p.y - s / 2) / TOP_H) * 100).toFixed(2)}%`,
+      width: `${((s / TOP_W) * 100).toFixed(2)}%`,
+      height: `${((s / TOP_H) * 100).toFixed(2)}%`,
+      "--r": `${rot.toFixed(1)}deg`,
+      zIndex: 10 + i,
+    } as React.CSSProperties;
+  });
 }
 
 /* Share links carry the builds in the URL hash, so nothing is stored on a server. */
