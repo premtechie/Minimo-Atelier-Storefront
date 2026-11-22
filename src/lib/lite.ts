@@ -22,3 +22,19 @@ export function liteCatalogue(store: Store): LiteItem[] {
     ...store.packs.map((k) => ({ id: `pack:${k.id}`, name: k.name, price: k.price, cap: Number.isFinite(k.canMake) ? k.canMake : null, image: k.art, href: packHref(k.id), unit: "per guest" })),
   ];
 }
+
+/**
+ * Where each thing a shopper can order has its own page, for the order page's
+ * item list: products by SKU, packs by the name the cart sends ("Fidget Fun
+ * pack"). Only what the catalogue still has, so a link never ends in a 404.
+ */
+export function orderLinks(store: Store): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const p of store.products) out[p.sku.toUpperCase()] = productHref(p.sku);
+  for (const k of store.packs) {
+    const name = k.name.toLowerCase();
+    out[`name:${name}`] = packHref(k.id);
+    out[`name:${/pack$/.test(name) ? name : `${name} pack`}`] = packHref(k.id);
+  }
+  return out;
+}
