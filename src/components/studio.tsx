@@ -1331,7 +1331,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                     <>
                       {guests ? (
                         <>
-                          {inr(total)} × <b>{Math.min(guests, maxGuests)}</b> bags
+                          {inr(total)} × <b>{Math.min(guests, maxGuests)}</b> {Math.min(guests, maxGuests) === 1 ? "bag" : "bags"}
                         </>
                       ) : (
                         `${inr(total)} a bag · pick how many`
