@@ -51,3 +51,13 @@ describe("topSpot (overhead pile)", () => {
     expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(a.s * 0.5);
   });
 });
+
+describe("overhead pack photos", () => {
+  it("has all three photos for every pack", async () => {
+    const { existsSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    for (const t of Object.values(TOP)) {
+      for (const i of [0, 1, 2]) expect(existsSync(join(process.cwd(), "public", `art/studio/top/${t.set}-${i}.webp`)), `${t.set}-${i}`).toBe(true);
+    }
+  });
+});

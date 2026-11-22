@@ -114,7 +114,7 @@ export function topSpot(t: TopView, prev: Spot[], seed: number, max: number, siz
     // Keep the centre inside the opening; the edges may tuck under the rim.
     const px = x + s * 0.3 + r() * Math.max(1, w - s * 0.6);
     const py = y + s * 0.3 + r() * Math.max(1, h - s * 0.6);
-    if (t.set === "potli" && ((px - cx) / (w / 2)) ** 2 + ((py - cy) / (h / 2)) ** 2 > 0.75) continue;
+    if (t.kind === "potli" && ((px - cx) / (w / 2)) ** 2 + ((py - cy) / (h / 2)) ** 2 > 0.75) continue;
     let score = Math.hypot((px - cx) / w, (py - cy) / h) * s * 0.4;
     for (const q of prev) {
       const d = Math.hypot(px - q.x, py - q.y);

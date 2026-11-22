@@ -64,7 +64,18 @@ function tab(name: string, list: Product[], limit = PER_TAB, orPlaceholder = fal
  * Bags shown from above as they fill, with their own photos closing them up.
  */
 function topFor(p: Product) {
+  const n = p.name;
   if (p.category_slug === "potli-bag") return TOP.potli;
+  if (/sunflower|korean jute/i.test(n)) return TOP.jutebow;
+  // Slings sold with the pink sample photo share its photos.
+  if (/^(rectange|rounded) sling|bubble sling|bunny ear|embroidery sling/i.test(n)) return TOP.sling;
+  if (/^paper bags?\b/i.test(n)) {
+    if (/6\s*x\s*6\b/i.test(n)) return TOP.thanks;
+    if (/6\s*x\s*9\b/i.test(n)) return TOP.paisley;
+    if (/8\s*x\s*10\b/i.test(n)) return TOP.jungle;
+    if (/10\s*x\s*12\b/i.test(n)) return TOP.bday;
+  }
+  if (/^round jelly/i.test(n)) return TOP.jround;
   return undefined;
 }
 
