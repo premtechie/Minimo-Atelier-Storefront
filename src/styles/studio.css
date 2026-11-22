@@ -427,3 +427,6 @@
   .st-box.is-top.is-wrapping .st-wrap .st-top-f, .st-box.is-top.is-wrapping .st-top-name { animation: none; opacity: 1; -webkit-mask-image: none; mask-image: none; }
   .st-box.is-top.is-wrapping .st-top-step > span { animation: none; }
 }
+/* a gift tumbling into the overhead pack */
+.st-ghost.st-tumble { object-fit: contain; transform-origin: 50% 50%; z-index: 9998; }
+.st-ghost.st-tumble.is-photo { object-fit: cover; border-radius: 6px; }

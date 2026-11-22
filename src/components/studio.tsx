@@ -7,7 +7,7 @@ import { Icon } from "./icon";
 import { useShop } from "./shop-provider";
 import type { CartPart } from "@/lib/cart";
 import { inr, plural } from "@/lib/format";
-import { buildName, CAPS, decodeShare, encodeShare, itemStyle, MAX_ITEMS, slots, tabForWho, topStyles, WHO, type Mode, type SavedBuild } from "@/lib/studio";
+import { buildName, CAPS, decodeShare, encodeShare, itemStyle, MAX_ITEMS, slots, spotStyle, tabForWho, topSpot, WHO, type Spot, type Mode, type SavedBuild } from "@/lib/studio";
 import { TOP_H, TOP_W, topFrame } from "@/lib/merch";
 import type { StudioBox, StudioData, StudioPiece, StudioStart } from "@/lib/studio-data";
 
@@ -156,7 +156,19 @@ function TopArt({
   onOut?: (u: number) => void;
 }) {
   const t = box.top!;
-  const st = topStyles(items.length, t, items.map((it) => pieces[it.sku]?.size ?? 1));
+  // Each gift keeps the spot it landed on, so the pile only grows on top.
+  const [landed] = useState(() => new Map<number, Spot>());
+  const max = MAX_ITEMS[box.hamper ? "hm" : "rg"];
+  const pile: Spot[] = [];
+  for (const it of items) {
+    let p = landed.get(it.u);
+    if (!p) {
+      p = topSpot(t, pile, it.u * 7 + pile.length + 1, max, pieces[it.sku]?.size ?? 0.8);
+      landed.set(it.u, p);
+    }
+    pile.push(p);
+  }
+  const st = pile.map(spotStyle);
   const style = { "--ar": `${TOP_W}/${TOP_H}`, "--arw": TOP_W, "--arh": TOP_H, "--clip": t.clip } as CSSProperties;
   const live = !!onOut;
   // A bag without the name tag stops at the tissue.
@@ -385,6 +397,72 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
     );
   };
 
+  /*
+   * Seen from above, a gift tips off its card (or the finger), tumbles in an
+   * arc towards the camera, then drops onto the pile and settles, its shadow
+   * tightening as it lands. It flies above the page so the bag's rim doesn't
+   * cut it off, and the real piece takes over where it lands.
+   */
+  const tumble = (el: HTMLElement, u: number, from?: Fly) => {
+    const sku = items.find((x) => x.u === u)?.sku;
+    const src = el.querySelector("img");
+    if (!src) return;
+    const to = el.getBoundingClientRect();
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const tx = to.left + to.width / 2;
+    const ty = to.top + to.height / 2;
+    let fx = tx;
+    let fy = ty - 220;
+    let k0 = 1.1;
+    let r0 = from?.rot ?? -12;
+    if (from) {
+      fx = from.x;
+      fy = from.y;
+      k0 = from.scale;
+    } else {
+      const card = sku ? trayRef.current?.querySelector(`[data-sku="${sku}"] img`) : null;
+      if (card) {
+        const c = card.getBoundingClientRect();
+        fx = c.left + c.width / 2;
+        fy = c.top + c.height / 2;
+        k0 = Math.max(0.5, Math.min(1.6, c.width / Math.max(w, 1)));
+        r0 = 0;
+      }
+    }
+    const rot = parseFloat(el.style.getPropertyValue("--r")) || 0;
+    const ghost = src.cloneNode(true) as HTMLImageElement;
+    ghost.className = `st-ghost st-tumble ${el.classList.contains("is-photo") ? "is-photo" : ""}`;
+    Object.assign(ghost.style, { left: `${tx - w / 2}px`, top: `${ty - h / 2}px`, width: `${w}px`, height: `${h}px` });
+    document.body.appendChild(ghost);
+    el.style.opacity = "0";
+    const dx = fx - tx;
+    const dy = fy - ty;
+    // Arc: up and over, higher the further it travels.
+    const lift = Math.min(dy, 0) * 0.45 - 40 - Math.abs(dx) * 0.12;
+    const spin = (dx > 0 ? -1 : 1) * 28;
+    const a = ghost.animate(
+      [
+        { transform: `translate(${dx}px, ${dy}px) rotate(${r0}deg) scale(${k0})`, filter: "drop-shadow(4px 6px 5px rgba(45,25,12,.25))" },
+        { transform: `translate(${dx * 0.92}px, ${dy * 0.92 - 14}px) rotate(${r0 + spin * 0.25}deg) scale(${k0 * 1.04})`, offset: 0.12 },
+        { transform: `translate(${dx * 0.45}px, ${lift}px) rotate(${rot + spin}deg) scale(1.45)`, filter: "drop-shadow(26px 34px 18px rgba(45,25,12,.16))", offset: 0.55 },
+        { transform: `translate(0, 0) rotate(${rot - spin * 0.08}deg) scale(.97)`, filter: "drop-shadow(4px 6px 4px rgba(45,25,12,.32))", offset: 0.88 },
+        { transform: `translate(0, 0) rotate(${rot}deg) scale(1)`, filter: "drop-shadow(4px 6px 4px rgba(45,25,12,.32))" },
+      ],
+      { duration: from ? 560 : 760, easing: "cubic-bezier(.45,.05,.35,1)" },
+    );
+    a.onfinish = a.oncancel = () => {
+      el.style.opacity = "";
+      ghost.remove();
+      // The pile gives a little under the new piece.
+      itemsRef.current?.querySelectorAll<HTMLElement>(".st-it").forEach((o) => {
+        if (o === el) return;
+        o.animate([{ scale: "1" }, { scale: ".985" }, { scale: "1" }], { duration: 260, easing: "ease-out" });
+      });
+      el.animate([{ scale: "1.03" }, { scale: ".99" }, { scale: "1" }], { duration: 240, easing: "ease-out" });
+    };
+  };
+
   // A new piece flies from the tray (or the finger) and lands in its slot.
   useLayoutEffect(() => {
     const f = fly.current;
@@ -392,17 +470,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
       fly.current = null;
       const el = itemsRef.current?.querySelector<HTMLElement>(`[data-u="${f.u}"]`);
       if (!el || reduced()) return burst();
-      if (box?.top) {
-        // Seen from above, a gift falls away from the camera: big and soft
-        // first, then it lands, its shadow tightening under it.
-        land(el, 0);
-        const to = el.getBoundingClientRect();
-        setTimeout(() => {
-          wobble();
-          burst(to.left + to.width / 2, to.top + to.height / 2);
-        }, 480);
-        return;
-      }
+      if (box?.top) return tumble(el, f.u, f.from);
       const to = el.getBoundingClientRect();
       const tx = to.left + to.width / 2;
       const ty = to.top + to.height / 2;

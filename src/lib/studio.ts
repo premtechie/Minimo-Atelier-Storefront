@@ -81,48 +81,64 @@ export function itemStyle(s: Slot, i: number, c: Pick<Container, "ih" | "hamper"
   } as React.CSSProperties;
 }
 
+/** Where one gift landed in an overhead pack, in photo pixels. */
+export type Spot = { x: number; y: number; s: number; rot: number };
+
+/** A small seeded random, so a gift lands in the same place every time it is drawn. */
+function rand(seed: number) {
+  let a = (seed * 2654435761) >>> 0 || 1;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 /**
- * Where n pieces lie in an overhead pack: rows across a bag or hamper, a ring
- * round a potli. Each piece is centred on its spot and sized to fit, in % of
- * the photo.
+ * Where the next gift lands on the pile, given the gifts already in the pack.
+ * Like dropping things into a real bag: it falls into the emptiest part of the
+ * opening, partly over what is there once it fills, and stays where it lands.
  */
-export function topStyles(n: number, t: TopView, sizes: number[] = []) {
+export function topSpot(t: TopView, prev: Spot[], seed: number, max: number, size = 1): Spot {
   const { x, y, w, h } = t.area;
-  const ring = t.set === "potli";
-  const rows = ring ? 1 : t.set === "box" ? (n > 6 ? 3 : n > 2 ? 2 : 1) : n > 3 ? 2 : 1;
-  const per = ring ? Math.max(1, Math.min(3, n)) : Math.ceil(n / rows);
-  const size = Math.min(t.size * (n <= 1 ? 1.25 : 1), (w / per) * 1.15, (h / rows) * 1.2);
-  const spots: { x: number; y: number }[] = [];
-  if (ring) {
-    const cx = x + w / 2;
-    const cy = y + h / 2;
-    const around = n === 1 ? 0 : n >= 5 ? n - 1 : n;
-    for (let i = 0; i < around; i++) {
-      const a = -Math.PI / 2 + (i / around) * Math.PI * 2 + 0.4;
-      spots.push({ x: cx + w * 0.3 * Math.cos(a), y: cy + h * 0.28 * Math.sin(a) });
+  const base = Math.min(t.size, Math.sqrt((w * h) / (max * 0.7)));
+  const s = base * Math.min(1.25, Math.max(0.9, size / 0.8));
+  const r = rand(seed);
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  let best: Spot | null = null;
+  let bestScore = Infinity;
+  for (let k = 0; k < 24; k++) {
+    // Keep the centre inside the opening; the edges may tuck under the rim.
+    const px = x + s * 0.3 + r() * Math.max(1, w - s * 0.6);
+    const py = y + s * 0.3 + r() * Math.max(1, h - s * 0.6);
+    if (t.set === "potli" && ((px - cx) / (w / 2)) ** 2 + ((py - cy) / (h / 2)) ** 2 > 0.75) continue;
+    let score = Math.hypot((px - cx) / w, (py - cy) / h) * s * 0.4;
+    for (const q of prev) {
+      const d = Math.hypot(px - q.x, py - q.y);
+      const reach = (s + q.s) * 0.5;
+      if (d < reach) score += (reach - d) ** 2 / reach;
     }
-    if (n === 1 || n >= 5) spots.push({ x: cx, y: cy });
-  } else {
-    for (let i = 0; i < n; i++) {
-      const r = Math.floor(i / per);
-      const k = i % per;
-      const cnt = r === rows - 1 ? n - per * (rows - 1) : per;
-      spots.push({ x: x + w * ((k + 0.5) / cnt), y: rows === 1 ? y + h / 2 : y + h * ((r + 0.5) / rows) });
+    if (score < bestScore) {
+      bestScore = score;
+      best = { x: px, y: py, s, rot: (r() - 0.5) * 44 };
     }
   }
-  return spots.map((p, i) => {
-    // Cut-outs are sized to look right in the side view; keep them close here.
-    const s = size * Math.min(1.25, Math.max(0.9, (sizes[i] ?? 0.8) / 0.8));
-    const rot = (((i * 37 + n * 11) % 13) - 6) * 2.2;
-    return {
-      left: `${((p.x / TOP_W) * 100).toFixed(2)}%`,
-      bottom: `${(((TOP_H - p.y - s / 2) / TOP_H) * 100).toFixed(2)}%`,
-      width: `${((s / TOP_W) * 100).toFixed(2)}%`,
-      height: `${((s / TOP_H) * 100).toFixed(2)}%`,
-      "--r": `${rot.toFixed(1)}deg`,
-      zIndex: 10 + i,
-    } as React.CSSProperties;
-  });
+  return best ?? { x: cx, y: cy, s, rot: 0 };
+}
+
+/** Inline style for a gift lying at a spot, in % of the photo. Later gifts lie on top. */
+export function spotStyle(p: Spot, i: number) {
+  return {
+    left: `${((p.x / TOP_W) * 100).toFixed(2)}%`,
+    bottom: `${(((TOP_H - p.y - p.s / 2) / TOP_H) * 100).toFixed(2)}%`,
+    width: `${((p.s / TOP_W) * 100).toFixed(2)}%`,
+    height: `${((p.s / TOP_H) * 100).toFixed(2)}%`,
+    "--r": `${p.rot.toFixed(1)}deg`,
+    zIndex: 10 + i,
+  } as React.CSSProperties;
 }
 
 /* Share links carry the builds in the URL hash, so nothing is stored on a server. */
