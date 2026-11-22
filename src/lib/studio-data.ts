@@ -1,4 +1,4 @@
-import { BAG_SLUGS, CONTAINERS, PACKS, PHOTO_BAG, RG_TABS, type Container } from "./merch";
+import { BAG_SLUGS, CONTAINERS, PACKS, PHOTO_BAG, RG_TABS, TOP, type Container } from "./merch";
 import { featured, stockCap, type Store } from "./store";
 import type { Product } from "./types";
 import type { Mode } from "./studio";
@@ -84,7 +84,9 @@ export function studioData(store: Store): StudioData {
     .filter((p) => BAG_SLUGS.includes(p.category_slug) && !used.has(p.sku) && !!(p.photoUrl ?? p.art))
     .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name));
   for (const p of photoBags) {
-    boxes.push({ ...PHOTO_BAG, key: p.sku.toLowerCase(), art: "", name: p.name, sku: p.sku, price: p.price, cap: capOf(p), img: (p.photoUrl ?? p.art)! });
+    // Potlis have overhead photos, so they fill and tie up seen from above.
+    const top = p.category_slug === "potli-bag" ? { top: TOP.potli } : {};
+    boxes.push({ ...PHOTO_BAG, ...top, key: p.sku.toLowerCase(), art: "", name: p.name, sku: p.sku, price: p.price, cap: capOf(p), img: (p.photoUrl ?? p.art)! });
   }
   const fillers = live.filter((p) => p.role === "filler" && p.tab);
   const rg = RG_TABS.map((t) => tab(t, fillers.filter((p) => p.tab === t)));
