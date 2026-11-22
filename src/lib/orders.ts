@@ -25,6 +25,8 @@ export type Order = {
   phone: string | null;
   courier: string | null;
   tracking_number: string | null;
+  /** Where the parcel is, from Velocity, and a page to track it (absent on older admins). */
+  tracking?: Tracking | null;
   lines: { name: string; qty: number; note: string | null; detail: string | null; sku: string | null; unit: number | null; total: number | null }[];
   gift_note: string | null;
   items_total: number;
@@ -36,6 +38,9 @@ export type Order = {
   refunded: number;
   can_cancel: boolean;
 };
+
+/** A shipped parcel: Velocity's live status and courier scans (newest first), and a page to follow it. */
+export type Tracking = { url: string | null; status: string | null; events: { at: string | null; text: string; place: string | null }[] };
 
 /** Kept on the shopper's phone: enough to read the order back, plus the cart's pictures. */
 export type SavedOrder = { number: string; token: string; at: number; images?: (string | null)[]; order?: Order };
@@ -99,8 +104,8 @@ export function steps(o: Order): Step[] {
   } else if (o.delivery === "flat") {
     s.push({ key: "done", title: "Delivered", done: "Delivered to your flat. Enjoy the party!", wait: "We bring it to your tower and flat.", icon: "heart", day: 2, at: o.shipped_at });
   } else {
-    const track = [o.courier, o.tracking_number ? `Tracking: ${o.tracking_number}` : ""].filter(Boolean).join(". ");
-    s.push({ key: "shipped", title: "Shipped", done: `Handed to the courier.${track ? ` ${track}.` : ""}`, wait: "You get a tracking number when it ships.", icon: "box", day: o.delivery === "hyd" ? 3 : 6, at: o.shipped_at });
+    const live = o.tracking?.status;
+    s.push({ key: "shipped", title: "Shipped", done: `Handed to ${o.courier || "the courier"}.${live ? ` ${live}.` : ""}`, wait: "You get a tracking number when it ships.", icon: "box", day: o.delivery === "hyd" ? 3 : 6, at: o.shipped_at });
   }
   return s;
 }
