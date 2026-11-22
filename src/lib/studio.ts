@@ -112,7 +112,7 @@ export function topStyles(n: number, t: TopView, sizes: number[] = []) {
   }
   return spots.map((p, i) => {
     // Cut-outs are sized to look right in the side view; keep them close here.
-    const s = size * Math.min(1.15, Math.max(0.8, sizes[i] ?? 1));
+    const s = size * Math.min(1.25, Math.max(0.9, (sizes[i] ?? 0.8) / 0.8));
     const rot = (((i * 37 + n * 11) % 13) - 6) * 2.2;
     return {
       left: `${((p.x / TOP_W) * 100).toFixed(2)}%`,
