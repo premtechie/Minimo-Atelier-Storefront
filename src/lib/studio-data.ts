@@ -60,6 +60,16 @@ function tab(name: string, list: Product[], limit = PER_TAB, orPlaceholder = fal
   return items.length ? { name, items } : null;
 }
 
+/**
+ * Bags shown from above as they fill, with their own photos closing them up.
+ * Plain kraft paper bags of any size share the kraft bag's photos.
+ */
+function topFor(p: Product) {
+  if (p.category_slug === "potli-bag") return TOP.potli;
+  if (/^Paper Bags?\b/i.test(p.name) && !/birthday|print|theme/i.test(p.name)) return TOP.bag;
+  return undefined;
+}
+
 export function studioData(store: Store): StudioData {
   const live = store.live;
   const boxes: StudioBox[] = [];
@@ -84,8 +94,8 @@ export function studioData(store: Store): StudioData {
     .filter((p) => BAG_SLUGS.includes(p.category_slug) && !used.has(p.sku) && !!(p.photoUrl ?? p.art))
     .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name));
   for (const p of photoBags) {
-    // Potlis have overhead photos, so they fill and tie up seen from above.
-    const top = p.category_slug === "potli-bag" ? { top: TOP.potli } : {};
+    const t = topFor(p);
+    const top = t ? { top: t } : {};
     boxes.push({ ...PHOTO_BAG, ...top, key: p.sku.toLowerCase(), art: "", name: p.name, sku: p.sku, price: p.price, cap: capOf(p), img: (p.photoUrl ?? p.art)! });
   }
   const fillers = live.filter((p) => p.role === "filler" && p.tab);
