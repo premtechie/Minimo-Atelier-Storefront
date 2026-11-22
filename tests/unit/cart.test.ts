@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addLine, cartTotals, needBySku, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
+import { addLine, cartTotals, couponSaving, needBySku, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
 
 const shop: Record<string, { price: number; cap: number; name: string }> = {
   BAG: { price: 20, cap: 100, name: "Bag" },
@@ -38,5 +38,16 @@ describe("cart", () => {
     const lines = [pack(8), { ...pack(4), key: "x", note: "Mia" }];
     expect(needBySku(lines).get("PEN")).toBe(12);
     expect(shortages(lines, lookup)).toEqual([{ sku: "PEN", name: "Pen", need: 12, have: 10 }]);
+  });
+});
+
+describe("coupon saving", () => {
+  const c = { code: "2RFR3Y7M", percent: 10, cap: 250, min_bill: 500 };
+  it("follows the admin's rule: percent to the rupee, capped, nothing below the minimum", () => {
+    expect(couponSaving(null, 1000)).toBe(0);
+    expect(couponSaving(c, 499)).toBe(0);
+    expect(couponSaving(c, 500)).toBe(50);
+    expect(couponSaving(c, 1235)).toBe(124);
+    expect(couponSaving(c, 3289)).toBe(250);
   });
 });

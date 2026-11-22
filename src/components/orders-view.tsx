@@ -588,6 +588,12 @@ export function OrderDetail({ number, links = {} }: { number: string; links?: Re
             <dl className="e-od-sum">
               <dt>Items</dt>
               <dd>{inr(o.items_total)}</dd>
+              {o.coupon && (
+                <>
+                  <dt>Coupon {o.coupon.code}</dt>
+                  <dd>−{inr(o.coupon.saving)}</dd>
+                </>
+              )}
               <dt>{pick ? "Pickup" : o.ship_speed === "express" ? "Express delivery" : o.ship_speed === "standard" ? "Standard delivery" : "Delivery"}</dt>
               <dd>{o.shipping ? inr(o.shipping) : "Free"}</dd>
               <dt className="e-od-tot">Total</dt>

@@ -20,7 +20,12 @@ export function adminFetch(path: string, init: RequestInit & { next?: { revalida
   if (!key) throw new Error("ADMIN_API_KEY is not set");
   // Which site is asking: a preview gets test sign-in codes, never real SMS.
   const env = process.env.VERCEL_ENV || "development";
-  return fetch(`${ADMIN_URL}/api/v1/storefront${path}`, { ...init, headers: { ...init.headers, [KEY_HEADER]: key, "x-storefront-env": env } });
+  // Admin previews sit behind Vercel's login; a preview of this site passes
+  // that gate with the admin project's automation bypass secret.
+  const bypass = process.env.ADMIN_PROTECTION_BYPASS;
+  const headers: Record<string, string> = { [KEY_HEADER]: key, "x-storefront-env": env };
+  if (bypass) headers["x-vercel-protection-bypass"] = bypass;
+  return fetch(`${ADMIN_URL}/api/v1/storefront${path}`, { ...init, headers: { ...init.headers, ...headers } });
 }
 
 async function fetchCatalogue(): Promise<Catalogue | null> {
