@@ -160,5 +160,10 @@ export function eta(o: Order) {
 function inrPlain(n: number) {
   return "₹" + Math.round(n).toLocaleString("en-IN");
 }
+/** The page for one ordered line: the product by its SKU, else a pack by its name; null for a custom bag. */
+export function lineHref(l: Pick<Order["lines"][number], "sku" | "name">, links: Record<string, string>): string | null {
+  return (l.sku && links[l.sku.toUpperCase()]) || links[`name:${l.name.trim().toLowerCase()}`] || null;
+}
+
 export const pieces = (o: Order) => o.lines.reduce((t, l) => t + l.qty, 0);
 export const prettyPhone = fmtPhone;
