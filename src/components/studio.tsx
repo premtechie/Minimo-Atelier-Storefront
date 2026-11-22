@@ -131,6 +131,29 @@ const TOP_STEPS = {
   flap: ["Flap closed over the gifts", "Tag tied on"],
 } as const;
 /** Packs whose last photo only adds the name tag, so they stop a step early without one. */
+const BAG_COUNTS = [10, 15, 20, 25, 30];
+
+function BagCount({ value, max, onChange }: { value: number | null; max: number; onChange: (v: number | null) => void }) {
+  return (
+    <label className="st-inline">
+      <input
+        autoFocus
+        inputMode="numeric"
+        maxLength={3}
+        defaultValue={value ?? ""}
+        placeholder="e.g. 18"
+        aria-label="Number of bags"
+        onFocus={(e) => e.currentTarget.select()}
+        onChange={(e) => {
+          const v = Math.round(Number(e.target.value.replace(/\D/g, "")));
+          onChange(v >= 1 ? Math.min(v, max) : null);
+        }}
+      />
+      <small>bags</small>
+    </label>
+  );
+}
+
 const TAG_LAST = { bag: 1100, zip: 1200, flap: 1200 } as Partial<Record<string, number>>;
 
 /** The pack seen from above: gifts lie inside its opening, and it closes in real photos. */
@@ -248,7 +271,8 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
   const [traySwap, setTraySwap] = useState(0);
   const [wrap, setWrap] = useState<0 | 1 | 2>(0);
   const [name, setName] = useState("");
-  const [guests, setGuests] = useState(20);
+  const [guests, setGuests] = useState<number | null>(null);
+  const [guestsCustom, setGuestsCustom] = useState(false);
   const [hinted, setHinted] = useState(false);
   const [boxIn, setBoxIn] = useState(false);
   const [saved, setSaved] = useState<SavedBuild[]>([]);
@@ -646,12 +670,13 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
       setWrap((w) => (w ? 2 : w));
       burst();
     }, reduced() ? 0 : box?.top ? (!tag && TAG_LAST[box.top.kind]) || box.top.ms : 650);
-    setGuests((g) => Math.max(1, Math.min(g, maxGuests)));
+    setGuests((g) => (g == null ? g : Math.max(1, Math.min(g, maxGuests))));
     if (window.innerWidth < 768) setTimeout(() => doneRef.current?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "center" }), 900);
   };
   const toCart = () => {
     if (!box || !items.length) return;
-    const qty = rg ? Math.max(1, Math.min(guests, maxGuests)) : 1;
+    if (rg && !guests) return toast("Pick how many bags you need first.");
+    const qty = rg ? Math.max(1, Math.min(guests ?? 1, maxGuests)) : 1;
     if (canMake < 1) return toast("We can't make this one from today's stock. Swap a piece and try again.");
     const label = rg ? "Your return-gift bag" : "Your hamper";
     add({
@@ -1140,6 +1165,33 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                 </label>
               )}
             </div>
+            {rg && (
+              <>
+                <p className="st-optlabel">How many bags?</p>
+                <div className="st-budgetwrap">
+                  <div className="st-budget" role="radiogroup" aria-label="How many bags">
+                    {BAG_COUNTS.map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        role="radio"
+                        aria-checked={!guestsCustom && guests === v}
+                        onClick={() => {
+                          setGuestsCustom(false);
+                          setGuests(v);
+                        }}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                    <button type="button" role="radio" aria-checked={guestsCustom} onClick={() => setGuestsCustom(true)}>
+                      Custom
+                    </button>
+                  </div>
+                  {guestsCustom && <BagCount value={guests} max={maxGuests} onChange={setGuests} />}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="st-trayhead">
@@ -1241,24 +1293,34 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                 <input maxLength={rg ? 14 : 60} placeholder={rg ? "e.g. Aarav turns 6" : "Happy birthday, love!"} value={name} onChange={(e) => setName(e.target.value)} />
               </label>
               {rg && (
-                <div className="st-guests">
-                  <span>Guests</span>
+                <div className={`st-guests ${guests ? "" : "is-empty"}`}>
+                  <span>How many bags?</span>
                   <div className="m-qty">
-                    <button type="button" aria-label="5 fewer" disabled={guests <= 5} onClick={() => setGuests((g) => Math.max(5, g - 5))}>
+                    <button type="button" aria-label="1 fewer" disabled={!guests || guests <= 1} onClick={() => setGuests((g) => Math.max(1, (g ?? 1) - 1))}>
                       <Icon name="minus" size={15} />
                     </button>
-                    <output aria-live="polite">{guests}</output>
-                    <button type="button" aria-label="5 more" disabled={guests + 5 > maxGuests} onClick={() => setGuests((g) => Math.min(maxGuests, g + 5))}>
+                    <input
+                      inputMode="numeric"
+                      aria-label="Number of bags"
+                      placeholder="0"
+                      value={guests ?? ""}
+                      onFocus={(e) => e.currentTarget.select()}
+                      onChange={(e) => {
+                        const v = Math.round(Number(e.target.value.replace(/\D/g, "")));
+                        setGuests(v >= 1 ? Math.min(v, maxGuests) : null);
+                      }}
+                    />
+                    <button type="button" aria-label="1 more" disabled={(guests ?? 0) + 1 > maxGuests} onClick={() => setGuests((g) => Math.min(maxGuests, (g ?? 0) + 1))}>
                       <Icon name="plus" size={15} />
                     </button>
                   </div>
                 </div>
               )}
               {rg && Number.isFinite(canMake) && canMake < 300 && (
-                <p className={`st-done-stock ${canMake < guests ? "is-short" : ""}`}>
+                <p className={`st-done-stock ${guests && canMake < guests ? "is-short" : ""}`}>
                   {canMake < 1
                     ? "One of these pieces just sold out. Unwrap and swap it."
-                    : canMake < guests
+                    : guests && canMake < guests
                       ? `We can make ${plural(canMake, "bag", "bags")} like this from today's stock. Swap a piece for more, or message us.`
                       : `We can make up to ${plural(canMake, "bag", "bags")} like this today.`}
                 </p>
@@ -1267,19 +1329,25 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                 <span>
                   {rg ? (
                     <>
-                      {inr(total)} × <b>{Math.min(guests, maxGuests)}</b> bags
+                      {guests ? (
+                        <>
+                          {inr(total)} × <b>{Math.min(guests, maxGuests)}</b> bags
+                        </>
+                      ) : (
+                        `${inr(total)} a bag · pick how many`
+                      )}
                     </>
                   ) : (
                     "1 hamper"
                   )}
                 </span>
-                <b>{inr(rg ? total * Math.min(guests, maxGuests) : total)}</b>
+                <b>{inr(rg ? total * Math.min(guests ?? 1, maxGuests) : total)}</b>
               </div>
               <div className="st-done-btns">
                 <button type="button" className="st-btn st-btn--ghost" onClick={() => setWrap(0)}>
                   Unwrap and edit
                 </button>
-                <button type="button" className="st-btn st-btn--primary" onClick={toCart} disabled={canMake < 1}>
+                <button type="button" className="st-btn st-btn--primary" onClick={toCart} disabled={canMake < 1 || (rg && !guests)}>
                   <Icon name="bag" size={16} /> Add to cart
                 </button>
               </div>
