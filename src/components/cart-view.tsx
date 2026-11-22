@@ -3,7 +3,7 @@
 import { SafeImg } from "./safe-img";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { addLine, cartTotals, lineRate, lineTotal, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
+import { addLine, cartTotals, couponSaving, type AppliedCoupon as Applied, lineRate, lineTotal, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
 import { newToken, rememberOrder, type Order, type SavedOrder } from "@/lib/orders";
 import { OrderPlaced } from "./orders-view";
 import { inr, plural } from "@/lib/format";
@@ -67,6 +67,41 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
   const [placed, setPlaced] = useState<SavedOrder | null>(null);
   const [coupon, setCoupon] = useState("");
   const [couponMsg, setCouponMsg] = useState("");
+  const [applied, setApplied] = useState<Applied | null>(null);
+  const [checkingCoupon, setCheckingCoupon] = useState(false);
+  const saving = couponSaving(applied, t.total);
+  const toPay = t.total - saving;
+  const applyCoupon = async () => {
+    const v = coupon.trim().toUpperCase();
+    if (!v) return setCouponMsg("Enter a code first.");
+    setCheckingCoupon(true);
+    setCouponMsg("");
+    try {
+      const res = await fetch("/api/coupons/check", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code: v, amount: t.total }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { coupon?: Applied; error?: { message?: string } };
+      if (!res.ok || !data.coupon) {
+        setApplied(null);
+        setCouponMsg(data.error?.message || "We couldn't check that code just now. Please try again.");
+        return;
+      }
+      setApplied(data.coupon);
+      setCoupon(data.coupon.code);
+      track("coupon_applied");
+    } catch {
+      setCouponMsg("We couldn't check that code just now. Please try again.");
+    } finally {
+      setCheckingCoupon(false);
+    }
+  };
+  const removeCoupon = () => {
+    setApplied(null);
+    setCoupon("");
+    setCouponMsg("");
+  };
   const [gift, setGift] = useState(false);
   const [giftNote, setGiftNote] = useState("");
   const blocked = !live.length || short.length > 0;
@@ -165,10 +200,16 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
                       <span>{inr(t.discount)}</span>
                     </div>
                   )}
+                  {saving > 0 && (
+                    <div className="d-sum-row is-save">
+                      <span>Coupon {applied!.code}</span>
+                      <span>−{inr(saving)}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="d-sum-total">
                   <span>Total</span>
-                  <strong>{inr(t.total)}</strong>
+                  <strong>{inr(toPay)}</strong>
                 </div>
                 <button ref={cta} className="d-sum-cta" disabled={blocked} onClick={() => setSheet(true)}>
                   Checkout <Icon name="arrowR" size={16} />
@@ -214,22 +255,34 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
                   className="d-coupon"
                   onSubmit={(e) => {
                     e.preventDefault();
-                    const v = coupon.trim().toUpperCase();
-                    setCouponMsg(v ? `We'll check “${v}” when we confirm your order.` : "Enter a code first.");
+                    if (applied) removeCoupon();
+                    else void applyCoupon();
                   }}
                 >
                   <input
                     className="d-coupon-input"
                     value={coupon}
-                    onChange={(e) => setCoupon(e.target.value.slice(0, 24))}
+                    onChange={(e) => {
+                      setCoupon(e.target.value.slice(0, 24));
+                      // Editing the code takes the applied one off until Apply is pressed again.
+                      if (applied) setApplied(null);
+                      setCouponMsg("");
+                    }}
                     placeholder="Coupon code"
                     aria-label="Coupon code"
                     autoComplete="off"
+                    readOnly={checkingCoupon}
                   />
-                  <button>Apply</button>
+                  <button disabled={checkingCoupon} aria-busy={checkingCoupon}>
+                    {checkingCoupon ? "Checking…" : applied ? "Remove" : "Apply"}
+                  </button>
                 </form>
-                <p className="d-coupon-msg" aria-live="polite">
-                  {couponMsg}
+                <p className="d-coupon-msg" data-ok={applied && saving > 0 ? "" : undefined} aria-live="polite">
+                  {applied
+                    ? saving > 0
+                      ? `${applied.code} applied: ${applied.percent}% off, up to ${inr(applied.cap)}. You save ${inr(saving)}.`
+                      : `Add ${inr(applied.min_bill - t.total)} more to use ${applied.code} (on orders of ${inr(applied.min_bill)} or more).`
+                    : couponMsg}
                 </p>
                 <div className="d-gift" data-on={gift ? "" : undefined}>
                   <button className="d-gift-toggle" aria-pressed={gift} onClick={() => setGift(!gift)}>
@@ -253,7 +306,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
           <div className="d-cart-bar" data-hidden={barHidden ? "" : undefined}>
             <div className="d-cart-bar-total">
               <span>Total</span>
-              <strong>{inr(t.total)}</strong>
+              <strong>{inr(toPay)}</strong>
             </div>
             <button className="d-cart-bar-btn" disabled={blocked} onClick={() => setSheet(true)} tabIndex={barHidden ? -1 : 0}>
               Checkout <Icon name="arrowR" size={16} />
@@ -264,8 +317,9 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
       <Checkout
         open={sheet && live.length > 0}
         lines={live}
-        itemsTotal={t.total}
-        coupon={coupon.trim()}
+        itemsTotal={toPay}
+        // Only a code the shop accepted, and only once the cart reaches its minimum.
+        coupon={applied && saving > 0 ? applied.code : ""}
         giftNote={gift ? giftNote.trim() || "Make it a gift" : ""}
         onClose={() => setSheet(false)}
         onPlaced={(o) => {

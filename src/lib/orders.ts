@@ -28,6 +28,8 @@ export type Order = {
   lines: { name: string; qty: number; note: string | null; detail: string | null; sku: string | null; unit: number | null; total: number | null }[];
   gift_note: string | null;
   items_total: number;
+  /** The coupon taken off the items (absent on older orders). */
+  coupon?: { code: string; saving: number } | null;
   shipping: number;
   /** Courier speed the shopper chose and the promised date (absent on older orders). */
   ship_speed?: "express" | "standard" | null;

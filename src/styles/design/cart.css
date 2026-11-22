@@ -290,6 +290,8 @@
 .d-coupon button { height: 44px; padding: 0 18px; border-radius: var(--radius-pill); border: 1px solid var(--brand); background: #fff; color: var(--brand); font: 600 13px/1 var(--font-sans); cursor: pointer; }
 .d-coupon-msg { margin: 6px 4px 0; min-height: 0; font-size: 12px; color: var(--sale); }
 .d-coupon-msg:empty { display: none; }
+.d-coupon-msg[data-ok] { color: var(--ok, #2e7d32); }
+.d-coupon button:disabled { opacity: 0.6; cursor: default; }
 .d-gift-label small { display: block; font-size: 12px; color: var(--fg-muted); }
 .d-gift-toggle { color: var(--fg); }
 .d-cart-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 48px 0 24px; }

@@ -79,3 +79,12 @@ export function addLine(lines: CartLine[], line: CartLine): CartLine[] {
   return [...lines, line];
 }
 
+
+/** A coupon the admin said can be used: its offer, so the saving follows the cart as it changes. */
+export type AppliedCoupon = { code: string; percent: number; cap: number; min_bill: number };
+
+/** The admin's own rule (its lib/coupons/rules.ts): percent of the items, to the nearest rupee, up to the cap; nothing below the minimum. */
+export function couponSaving(c: AppliedCoupon | null, items: number) {
+  if (!c || items < c.min_bill) return 0;
+  return Math.min(items, c.cap, Math.round((items * c.percent) / 100));
+}
