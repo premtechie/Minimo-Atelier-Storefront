@@ -391,6 +391,9 @@
 .is-top-flap.is-wrapping .st-top-f1 { animation: st-flap 1.2s cubic-bezier(.5, 0, .3, 1) both; }
 .is-top-flap.is-wrapping .st-top-f2 { animation: st-fadein .75s ease-out both 1.2s; }
 .is-top-flap .st-top-f1 { transform-origin: 50% 20%; -webkit-mask-image: linear-gradient(180deg, #000 var(--st-m), transparent calc(var(--st-m) + 8%)); mask-image: linear-gradient(180deg, #000 var(--st-m), transparent calc(var(--st-m) + 8%)); }
+/* once closed, the open photo underneath must not show through the soft edges */
+.is-top-zip.is-wrapping .st-top-f0, .is-top-flap.is-wrapping .st-top-f0, .is-top-zip.is-wrapping .st-top-in, .is-top-flap.is-wrapping .st-top-in { animation: st-fadeout .3s linear both 1.1s; }
+@keyframes st-fadeout { to { opacity: 0; } }
 @keyframes st-zip { from { opacity: 1; --st-m: -5%; } to { opacity: 1; --st-m: 105%; } }
 @keyframes st-flap { from { opacity: 1; --st-m: -10%; transform: scaleY(.9); } to { opacity: 1; --st-m: 110%; transform: none; } }
 .st-box.is-top.is-wrapped { animation: st-settle .5s ease-out both; }
