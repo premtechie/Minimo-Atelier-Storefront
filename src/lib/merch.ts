@@ -201,8 +201,8 @@ export const TOP_W = 1368;
 export const TOP_H = 772;
 const OVERHEAD_SHADE = "radial-gradient(60% 75% at 50% 50%, transparent 55%, rgba(60,35,15,.25) 100%)";
 /** A paper bag seen from the front and above: gifts stand in it and show above the front panel. */
-const upright = (set: string, tag: TopView["tag"], clip = "polygon(31% 0, 67.4% 0, 67.6% 50.3%, 30.8% 50.3%)"): TopView => ({
-  set, kind: "bag", clip, area: { x: 470, y: 250, w: 420, h: 100 }, size: 165, ms: 1850,
+const upright = (set: string, tag: TopView["tag"], clip = "polygon(31% 0, 67.4% 0, 67.6% 50.3%, 30.8% 50.3%)", y = 250): TopView => ({
+  set, kind: "bag", clip, area: { x: 470, y, w: 420, h: 100 }, size: 165, ms: 1850,
   shade: "linear-gradient(to bottom, transparent 38%, rgba(40,20,10,.2) 50.3%)", tag,
 });
 /** A tote seen from straight above, its opening at the middle of the photo. */
@@ -213,9 +213,9 @@ const tote = (set: string, clip: string, area: TopView["area"], tag: TopView["ta
  * A zip or flap bag seen from the front and above, opened wide: gifts sit in the
  * opening and show above its front edge. `rim` is the front edge in % of height.
  */
-const front = (set: string, kind: "zip" | "flap", x: [number, number], top: number, rim: number, tag: TopView["tag"], size = 130): TopView => ({
+const front = (set: string, kind: "zip" | "flap", x: [number, number], top: number, rim: number, tag: TopView["tag"], size = 190): TopView => ({
   set, kind, clip: `polygon(${x[0]}% ${top}%, ${x[1]}% ${top}%, ${x[1]}% ${rim}%, ${x[0]}% ${rim}%)`,
-  area: { x: Math.round((x[0] + 2) / 100 * TOP_W), y: Math.round((rim - 13) / 100 * TOP_H), w: Math.round((x[1] - x[0] - 4) / 100 * TOP_W), h: Math.round(0.1 * TOP_H) },
+  area: { x: Math.round((x[0] + 2) / 100 * TOP_W), y: Math.round((rim - 22) / 100 * TOP_H), w: Math.round((x[1] - x[0] - 4) / 100 * TOP_W), h: Math.round(0.18 * TOP_H) },
   size, ms: 1950, shade: `linear-gradient(to bottom, transparent ${rim - 10}%, rgba(40,20,10,.2) ${rim}%)`, tag,
 });
 export const TOP = {
@@ -240,6 +240,19 @@ export const TOP = {
   jungle: upright("jungle", { x: 49.5, y: 25.5, r: -4, w: 5.2 }),
   bday: upright("bday", { x: 49.9, y: 27, r: -3, w: 5.8 }, "polygon(31% 0, 67.6% 0, 67.8% 48.6%, 30.8% 48.6%)"),
   jround: front("jround", "flap", [35, 65.5], 14, 61, { x: 22.2, y: 76.8, r: 25, w: 7 }),
+  jmini: front("jmini", "flap", [32.5, 67.5], 12, 63, { x: 21.2, y: 77.5, r: 25, w: 7 }),
+  jchest: front("jchest", "zip", [33.5, 65.5], 15, 59, { x: 23, y: 75, r: 25, w: 7 }),
+  lunch: front("lunch", "flap", [33.5, 66], 12, 65, { x: 22.2, y: 76.8, r: 25, w: 7 }),
+  zesto: front("zesto", "flap", [32, 67.5], 12, 63, { x: 21.7, y: 77.5, r: 25, w: 7 }),
+  korean: front("korean", "flap", [36, 62.5], 10, 48.5, { x: 26.5, y: 70, r: 25, w: 7 }),
+  quilt: front("quilt", "flap", [33, 67], 12, 65, { x: 24, y: 73, r: 25, w: 7 }),
+  kuromi: front("kuromi", "flap", [34, 65.5], 12, 55, { x: 23.8, y: 75.3, r: 25, w: 7 }),
+  tote3: upright("tote3", { x: 50.3, y: 24.5, r: -10, w: 6 }, "polygon(33% 0, 67% 0, 67% 38%, 33% 38%)", 165),
+  batman: front("batman", "zip", [33.5, 66], 13, 51.5, { x: 23.5, y: 71, r: 15, w: 7 }),
+  moto: front("moto", "zip", [33.5, 66], 13, 54, { x: 23, y: 70.5, r: 15, w: 7 }),
+  donut: front("donut", "zip", [33.5, 66], 13, 55, { x: 23, y: 71, r: 15, w: 7 }),
+  space: front("space", "zip", [33, 66.5], 13, 55, { x: 22.8, y: 71, r: 15, w: 7 }),
+  football: front("football", "zip", [33, 66.5], 13, 56, { x: 22.8, y: 71, r: 15, w: 7 }),
   sling: front("sling", "flap", [34.5, 64.5], 18, 57, { x: 21, y: 77.5, r: 25, w: 7 }),
 } satisfies Record<string, TopView>;
 export const topFrame = (t: Pick<TopView, "set">, i: 0 | 1 | 2) => `/art/studio/top/${t.set}-${i}.webp`;

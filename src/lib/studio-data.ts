@@ -76,6 +76,20 @@ function topFor(p: Product) {
     if (/10\s*x\s*12\b/i.test(n)) return TOP.bday;
   }
   if (/^round jelly/i.test(n)) return TOP.jround;
+  if (/^mini jelly/i.test(n)) return TOP.jmini;
+  if (/^chest jelly/i.test(n)) return TOP.jchest;
+  if (/^lunch bags? - small/i.test(n)) return TOP.lunch;
+  if (/^zesto lunch/i.test(n)) return TOP.zesto;
+  if (/^korean sling/i.test(n)) return TOP.korean;
+  // Sold with the cream quilted sample photo.
+  if (/^kuromi bag/i.test(n)) return TOP.kuromi;
+  if (/^3 zip cloth/i.test(n)) return TOP.tote3;
+  if (/^pi(c)?nic bags?/i.test(n)) return TOP.batman;
+  if (/^motor bike/i.test(n)) return TOP.moto;
+  if (/^donut/i.test(n)) return TOP.donut;
+  if (/^space blue/i.test(n)) return TOP.space;
+  if (/^football/i.test(n)) return TOP.football;
+  if (/^glitter bag|^k\s*-\s*pop/i.test(n)) return TOP.quilt;
   return undefined;
 }
 
