@@ -383,6 +383,16 @@
 /* potli: the mouth gathers in from the rim, then the bow is tied */
 .is-top-potli.is-wrapping .st-top-f1 { animation: st-gather 1.3s cubic-bezier(.5, 0, .3, 1) both; }
 .is-top-potli.is-wrapping .st-top-f2 { animation: st-bloom .9s ease-out both 1.3s; }
+/* zip bag: the zip runs across from left to right, then the tag */
+.is-top-zip.is-wrapping .st-top-f1 { animation: st-zip 1.2s cubic-bezier(.45, 0, .35, 1) both; }
+.is-top-zip.is-wrapping .st-top-f2 { animation: st-fadein .75s ease-out both 1.2s; }
+.is-top-zip .st-top-f1 { -webkit-mask-image: linear-gradient(90deg, #000 var(--st-m), transparent calc(var(--st-m) + 4%)); mask-image: linear-gradient(90deg, #000 var(--st-m), transparent calc(var(--st-m) + 4%)); }
+/* flap bag: the flap swings down from the back over the gifts, then the tag */
+.is-top-flap.is-wrapping .st-top-f1 { animation: st-flap 1.2s cubic-bezier(.5, 0, .3, 1) both; }
+.is-top-flap.is-wrapping .st-top-f2 { animation: st-fadein .75s ease-out both 1.2s; }
+.is-top-flap .st-top-f1 { transform-origin: 50% 20%; -webkit-mask-image: linear-gradient(180deg, #000 var(--st-m), transparent calc(var(--st-m) + 8%)); mask-image: linear-gradient(180deg, #000 var(--st-m), transparent calc(var(--st-m) + 8%)); }
+@keyframes st-zip { from { opacity: 1; --st-m: -5%; } to { opacity: 1; --st-m: 105%; } }
+@keyframes st-flap { from { opacity: 1; --st-m: -10%; transform: scaleY(.9); } to { opacity: 1; --st-m: 110%; transform: none; } }
 .st-box.is-top.is-wrapped { animation: st-settle .5s ease-out both; }
 
 @keyframes st-bloom {
@@ -410,6 +420,7 @@
 /* the name on the bag's paper tag */
 .st-top-name { position: absolute; z-index: 3; left: 52.4%; top: 60.5%; width: 7.4%; translate: -50% -50%; rotate: 13deg; text-align: center; font: 400 2.1cqw/1 var(--ff-script); color: var(--brand); overflow-wrap: anywhere; opacity: 0; }
 .is-top-bag.is-wrapping .st-top-name { animation: st-fadein .5s ease-out both 1.6s; }
+.is-top-zip.is-wrapping .st-top-name, .is-top-flap.is-wrapping .st-top-name { animation: st-fadein .5s ease-out both 1.7s; }
 
 /* step captions under the photo */
 .st-top-step { position: absolute; left: 0; right: 0; bottom: -2px; z-index: 55; pointer-events: none; display: grid; justify-items: center; font: 500 12px/1.2 var(--ff-ui); color: var(--fg-soft, #6b5a52); }
@@ -420,7 +431,9 @@
 .is-top-box.is-wrapping .st-top-step > span:last-child { animation: st-cap 1.6s both 1.4s; }
 .is-top-potli.is-wrapping .st-top-step > span:first-child { animation: st-cap 1.3s both; }
 .is-top-potli.is-wrapping .st-top-step > span:last-child { animation: st-cap 1.6s both 1.3s; }
-.is-top-bag.is-wrapping .st-top-step > span:only-child { animation: st-cap 1.6s both; }
+.is-top-zip.is-wrapping .st-top-step > span:first-child, .is-top-flap.is-wrapping .st-top-step > span:first-child { animation: st-cap 1.2s both; }
+.is-top-zip.is-wrapping .st-top-step > span:last-child, .is-top-flap.is-wrapping .st-top-step > span:last-child { animation: st-cap 1.6s both 1.2s; }
+.is-top-bag.is-wrapping .st-top-step > span:only-child, .is-top-zip.is-wrapping .st-top-step > span:only-child, .is-top-flap.is-wrapping .st-top-step > span:only-child { animation: st-cap 1.6s both; }
 @keyframes st-cap { 0% { opacity: 0; translate: 0 6px; } 15%, 80% { opacity: 1; translate: 0 0; } 100% { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {

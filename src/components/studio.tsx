@@ -127,7 +127,11 @@ const TOP_STEPS = {
   bag: ["Tissue tucked in over the gifts", "Handles together, tag tied on"],
   box: ["Tissue folded over, left then right", "Lid on, ribbon tied"],
   potli: ["Drawstrings pulled, the mouth gathers", "Bow tied"],
+  zip: ["Zipped shut", "Tag tied on"],
+  flap: ["Flap closed over the gifts", "Tag tied on"],
 } as const;
+/** Packs whose last photo only adds the name tag, so they stop a step early without one. */
+const TAG_LAST = { bag: 1100, zip: 1200, flap: 1200 } as Partial<Record<string, number>>;
 
 /** The pack seen from above: gifts lie inside its opening, and it closes in real photos. */
 function TopArt({
@@ -172,11 +176,11 @@ function TopArt({
   const style = { "--ar": `${TOP_W}/${TOP_H}`, "--arw": TOP_W, "--arh": TOP_H, "--clip": t.clip } as CSSProperties;
   const live = !!onOut;
   // A bag without the name tag stops at the tissue.
-  const last = t.set === "bag" && !tagged ? 1 : 2;
+  const last = TAG_LAST[t.kind] && !tagged ? 1 : 2;
   return (
     <div
       ref={boxRef}
-      className={`st-box is-top is-top-${t.set} ${box.hamper ? "is-hamper" : ""} ${state === 1 ? "is-wrapping" : ""} ${state === 2 ? "is-wrapping is-wrapped" : ""} ${className}`}
+      className={`st-box is-top is-top-${t.kind} ${box.hamper ? "is-hamper" : ""} ${state === 1 ? "is-wrapping" : ""} ${state === 2 ? "is-wrapping is-wrapped" : ""} ${className}`}
       style={style}
     >
       {/* eslint-disable @next/next/no-img-element */}
@@ -205,13 +209,17 @@ function TopArt({
         <div className="st-wrap" aria-hidden="true">
           <img className="st-top-f st-top-f1" src={topFrame(t, 1)} alt="" />
           {last === 2 && <img className="st-top-f st-top-f2" src={topFrame(t, 2)} alt="" />}
-          {t.set === "bag" && last === 2 && tagName && <b className="st-top-name">{tagName}</b>}
+          {t.tag && last === 2 && tagName && (
+            <b className="st-top-name" style={{ left: `${t.tag.x}%`, top: `${t.tag.y}%`, rotate: `${t.tag.r}deg`, width: `${t.tag.w}%` }}>
+              {tagName}
+            </b>
+          )}
         </div>
       )}
       {live && state > 0 && (
         <span className="st-top-step" aria-hidden="true">
-          <span>{TOP_STEPS[t.set][0]}</span>
-          {last === 2 && <span>{TOP_STEPS[t.set][1]}</span>}
+          <span>{TOP_STEPS[t.kind][0]}</span>
+          {last === 2 && <span>{TOP_STEPS[t.kind][1]}</span>}
         </span>
       )}
       {/* eslint-enable @next/next/no-img-element */}
@@ -637,7 +645,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
     setTimeout(() => {
       setWrap((w) => (w ? 2 : w));
       burst();
-    }, reduced() ? 0 : box?.top ? (box.top.set === "bag" && !tag ? 1100 : box.top.ms) : 650);
+    }, reduced() ? 0 : box?.top ? (!tag && TAG_LAST[box.top.kind]) || box.top.ms : 650);
     setGuests((g) => Math.max(1, Math.min(g, maxGuests)));
     if (window.innerWidth < 768) setTimeout(() => doneRef.current?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "center" }), 900);
   };
