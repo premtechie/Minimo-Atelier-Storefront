@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildName, decodeShare, encodeShare, MAX_ITEMS, topStyles, type SavedBuild } from "@/lib/studio";
-import { TOP, TOP_H, TOP_W } from "@/lib/merch";
+import { buildName, decodeShare, encodeShare, MAX_ITEMS, topSpot, type Spot, type SavedBuild } from "@/lib/studio";
+import { TOP } from "@/lib/merch";
 
 const b = (o: Partial<SavedBuild> = {}): SavedBuild => ({
   k: "a", m: "rg", box: "paper", cap: 149, items: ["PEN", "ERAS"], name: "", who: "Aarav", fav: true, t: 0, ...o,
@@ -30,28 +30,24 @@ describe("studio share links", () => {
   });
 });
 
-describe("topStyles (overhead view)", () => {
-  const pct = (v: unknown) => parseFloat(String(v));
+describe("topSpot (overhead pile)", () => {
   for (const set of ["bag", "box", "potli"] as const) {
     it(`keeps every gift centre inside the ${set} opening`, () => {
       const t = TOP[set];
-      for (let n = 1; n <= 9; n++) {
-        const st = topStyles(n, t);
-        expect(st).toHaveLength(n);
-        for (const s of st) {
-          const cx = (pct(s.left) / 100) * TOP_W;
-          const cy = TOP_H - ((pct(s.bottom) + pct(s.height) / 2) / 100) * TOP_H;
-          expect(cx).toBeGreaterThanOrEqual(t.area.x - 1);
-          expect(cx).toBeLessThanOrEqual(t.area.x + t.area.w + 1);
-          expect(cy).toBeGreaterThanOrEqual(t.area.y - 1);
-          expect(cy).toBeLessThanOrEqual(t.area.y + t.area.h + 1);
-        }
+      const pile: Spot[] = [];
+      for (let i = 0; i < 9; i++) pile.push(topSpot(t, pile, i + 1, 9));
+      for (const p of pile) {
+        expect(p.x).toBeGreaterThanOrEqual(t.area.x);
+        expect(p.x).toBeLessThanOrEqual(t.area.x + t.area.w);
+        expect(p.y).toBeGreaterThanOrEqual(t.area.y);
+        expect(p.y).toBeLessThanOrEqual(t.area.y + t.area.h);
       }
     });
   }
-  it("shrinks gifts as the pack fills", () => {
-    const one = pct(topStyles(1, TOP.box)[0].width);
-    const nine = pct(topStyles(9, TOP.box)[0].width);
-    expect(nine).toBeLessThan(one);
+  it("lands in the same place for the same pile, and spreads gifts out", () => {
+    const a = topSpot(TOP.bag, [], 7, 6);
+    expect(topSpot(TOP.bag, [], 7, 6)).toEqual(a);
+    const b = topSpot(TOP.bag, [a], 8, 6);
+    expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(a.s * 0.5);
   });
 });
