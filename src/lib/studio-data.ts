@@ -62,11 +62,9 @@ function tab(name: string, list: Product[], limit = PER_TAB, orPlaceholder = fal
 
 /**
  * Bags shown from above as they fill, with their own photos closing them up.
- * Plain kraft paper bags of any size share the kraft bag's photos.
  */
 function topFor(p: Product) {
   if (p.category_slug === "potli-bag") return TOP.potli;
-  if (/^Paper Bags?\b/i.test(p.name) && !/birthday|print|theme/i.test(p.name)) return TOP.bag;
   return undefined;
 }
 
