@@ -446,3 +446,6 @@
 /* a gift tumbling into the overhead pack */
 .st-ghost.st-tumble { object-fit: contain; transform-origin: 50% 50%; z-index: 9998; }
 .st-ghost.st-tumble.is-photo { object-fit: cover; border-radius: 6px; }
+.st-guests .m-qty input { width: 48px; border: 0; background: transparent; text-align: center; font: 600 15px/1 var(--ff-ui); color: var(--fg, #3b2a23); -moz-appearance: textfield; }
+.st-guests .m-qty input:focus { outline: none; }
+.st-guests.is-empty .m-qty { border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent); }
