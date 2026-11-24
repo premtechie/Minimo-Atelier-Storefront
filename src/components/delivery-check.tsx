@@ -170,7 +170,7 @@ export function DeliveryCheck({ pieces }: { pieces: Piece[] }) {
                 <Icon name="info" size={16} />
                 <span>Couriers don&apos;t reach this pincode yet.</span>
               </p>
-              <a className="d-pin-link" href={waLink(`Hi Minimo, can you deliver to ${shown}?`)} target="_blank" rel="noopener">
+              <a className="d-pin-link" data-wa-source="Delivery check: ask about PIN" href={waLink(`Hi Minimo, can you deliver to ${shown}?`)} target="_blank" rel="noopener">
                 Ask us
               </a>
             </div>

@@ -142,7 +142,7 @@ export function Reviews({ name }: { name: string }) {
             Be the first to review {name}
           </h2>
           <p className="d-rev-note">Reviews appear here only from real orders.</p>
-          <a className="d-reviews-write" href={waLink(`Hi Minimo, a review for ${name}: `)} target="_blank" rel="noopener">
+          <a className="d-reviews-write" data-wa-source="Write a review" href={waLink(`Hi Minimo, a review for ${name}: `)} target="_blank" rel="noopener">
             <Icon name="pen" size={16} /> Write a review
           </a>
         </div>

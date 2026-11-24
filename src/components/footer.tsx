@@ -24,7 +24,7 @@ export function Footer() {
             <a href={SHOP.instagram} target="_blank" rel="noopener" aria-label="Instagram">
               <Icon name="instagram" size={20} />
             </a>
-            <a href={waLink()} target="_blank" rel="noopener" aria-label="WhatsApp">
+            <a href={waLink()} data-wa-source="Footer WhatsApp icon" target="_blank" rel="noopener" aria-label="WhatsApp">
               <Icon name="wa" size={20} />
             </a>
           </div>
