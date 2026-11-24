@@ -443,7 +443,7 @@ export function OrderDetail({ number, links = {} }: { number: string; links?: Re
               Try again
             </button>
           ) : (
-            <a className="e-od-btn e-od-btn--primary" href={waLink(`Hi Minimo, about my order ${number}`)} target="_blank" rel="noopener">
+            <a className="e-od-btn e-od-btn--primary" data-wa-source="Order page: ask about order" href={waLink(`Hi Minimo, about my order ${number}`)} target="_blank" rel="noopener">
               <Icon name="wa" size={16} /> Chat with us
             </a>
           )}
@@ -668,7 +668,7 @@ export function OrderDetail({ number, links = {} }: { number: string; links?: Re
           </section>
           <section className="e-od-sec e-od-box e-od-help">
             <h2>Need help with this order?</h2>
-            <a className="e-od-btn" href={waLink(`Hi Minimo, about my order ${o.number}`)} target="_blank" rel="noopener">
+            <a className="e-od-btn" data-wa-source="My orders: ask about order" href={waLink(`Hi Minimo, about my order ${o.number}`)} target="_blank" rel="noopener">
               <Icon name="wa" size={16} /> Chat with us
             </a>
             {o.can_cancel && (

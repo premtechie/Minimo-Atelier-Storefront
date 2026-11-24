@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { track } from "@/lib/analytics";
 import { addLine, cartTotals, type CartLine } from "@/lib/cart";
 import { Icon } from "./icon";
 
@@ -83,10 +84,14 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       cart,
       add: (line, message, link) => {
         save(addLine(cart, line));
+        track("add_to_cart", { added_to_cart: line.name, [`add_to_cart_${line.kind}`]: line.name });
         toast(message ?? "Added to cart", link ?? { href: "/cart", label: "Checkout" });
       },
       setQty: (key, qty) => save(cart.map((l) => (l.key === key ? { ...l, qty: Math.max(1, qty) } : l))),
-      remove: (key) => save(cart.filter((l) => l.key !== key)),
+      remove: (key) => {
+        track("remove_from_cart");
+        save(cart.filter((l) => l.key !== key));
+      },
       replace: (lines) => save(lines),
       clear: () => save([]),
       count: cartTotals(cart).count,
@@ -101,6 +106,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
         // A signed-in shopper's account keeps the list too (account-provider.tsx).
         window.dispatchEvent(new CustomEvent("mm:wish", { detail: { id, on } }));
         if (name) toast(on ? `Saved ${name}` : "Removed from saved");
+        if (on) track("wishlist_add", { wishlisted: name ?? id });
       },
       setWishAll: (ids) => {
         const next = new Set(ids);

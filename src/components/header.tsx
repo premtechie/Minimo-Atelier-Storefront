@@ -154,7 +154,7 @@ function Menu({ open, onClose }: { open: boolean; onClose: () => void }) {
         ))}
       </nav>
       <div className="d-mnav-foot">
-        <a className="d-mnav-wa" href={waLink()} target="_blank" rel="noopener">
+        <a className="d-mnav-wa" data-wa-source="Menu: WhatsApp" href={waLink()} target="_blank" rel="noopener">
           <Icon name="wa" size={18} /> WhatsApp us
         </a>
         <span>Inside Honer Vivantis, Hyderabad</span>

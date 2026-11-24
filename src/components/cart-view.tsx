@@ -452,6 +452,10 @@ function Checkout({
     };
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (open) track("checkout_start");
+  }, [open]);
+
   const pick = del === "pickup";
   const mobRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -535,6 +539,7 @@ function Checkout({
       onPlaced(saved);
     } catch (e) {
       setErr2(e instanceof Error ? e.message : "Please try again.");
+      track("order_failed");
     } finally {
       setBusy(false);
     }
@@ -547,6 +552,7 @@ function Checkout({
     if (needPin && quote && !quote.available && quote.reason === "not_serviceable") return setErr("Couriers don't reach this PIN code yet. Message us on WhatsApp and we'll find a way.");
     if (needPin) savePin(pin);
     setErr("");
+    track("checkout_delivery_chosen", { checkout_delivery: del });
     setStep(2);
   };
 

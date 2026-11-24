@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { track } from "@/lib/analytics";
 import { inr } from "@/lib/format";
 import { Icon } from "./icon";
 
@@ -74,6 +75,15 @@ export function SearchSheet() {
       ctl.abort();
     };
   }, [q]);
+
+  // One "search" event per term the shopper settles on (not per keystroke).
+  const settled = res?.term;
+  const found = res ? res.hits.length + res.cats.length : 0;
+  useEffect(() => {
+    if (!settled || settled.length < 2) return;
+    const t = setTimeout(() => track(found ? "search" : "search_no_results", { search_term: settled.slice(0, 40) }), 1500);
+    return () => clearTimeout(t);
+  }, [settled, found]);
 
   const close = () => setOpen(false);
   const term = q.trim();

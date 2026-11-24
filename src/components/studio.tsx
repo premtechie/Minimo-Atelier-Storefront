@@ -1540,7 +1540,7 @@ function ShareSheet({ title, eyebrow, url, msg, thumbs, onClose }: { title: stri
             {copied ? "Copied" : "Copy"}
           </button>
         </div>
-        <a className="st-btn st-btn--primary st-share-wa" href={`https://wa.me/?text=${encodeURIComponent(msg)}`} target="_blank" rel="noopener noreferrer">
+        <a className="st-btn st-btn--primary st-share-wa" data-wa-source="Studio: share with a friend" href={`https://wa.me/?text=${encodeURIComponent(msg)}`} target="_blank" rel="noopener noreferrer">
           <Icon name="wa" size={18} /> Share on WhatsApp
         </a>
         <p className="st-share-note">If WhatsApp does not open, copy the link and paste it in your chat.</p>

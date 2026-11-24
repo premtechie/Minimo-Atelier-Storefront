@@ -67,7 +67,7 @@ export default function VisitStore() {
                 <span className="e-eyebrow">Talk to us</span>
                 <h2>WhatsApp is fastest</h2>
                 <p className="muted">Send a photo of your party theme and we&apos;ll suggest a mix.</p>
-                <a className="e-btn e-btn-wa" href={waLink("Hi Minimo, I'd like to visit the store.")} target="_blank" rel="noopener">
+                <a className="e-btn e-btn-wa" data-wa-source="Visit page: plan a visit" href={waLink("Hi Minimo, I'd like to visit the store.")} target="_blank" rel="noopener">
                   <EIcon name="wa" sm /> WhatsApp us
                 </a>
               </div>
