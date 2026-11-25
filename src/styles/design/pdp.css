@@ -468,3 +468,4 @@
   .d-care-list:has(> li:nth-child(4):last-child) { gap: 20px 8px; }
   .d-care-list:has(> li:nth-child(4):last-child) > li { flex-basis: calc(25% - 6px); }
 }
+a.d-set-btn { text-decoration: none; align-items: center; }
