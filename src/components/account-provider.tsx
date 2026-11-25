@@ -20,7 +20,7 @@ export type Account = { phone: string; email?: string | null; first_name: string
 /** provider "firebase": Google or an email link through Firebase; "minimo" (or missing): a code to the mobile. */
 export type AuthConfig = { available: boolean; test_mode: boolean; provider?: "firebase" | "minimo"; email_code?: boolean; otp_digits: number; resend_seconds: number };
 
-type Open = { reason?: "checkout" | "account" | "wishlist"; then?: () => void };
+type Open = { reason?: "checkout" | "account" | "wishlist" | "review"; then?: () => void };
 type Ctx = {
   /** "loading" until the first answer from the server. */
   status: "loading" | "signed_in" | "signed_out";
@@ -469,7 +469,7 @@ function SignInSheet({ open, reason, config, onClose, onDone }: { open: boolean;
         </div>
         <p className="a-eyebrow">Welcome to Minimo</p>
         <h2 className="a-title" id="a-sheet-title">
-          {reason === "checkout" ? "Sign in to place your order" : "Sign in to shop smarter"}
+          {reason === "checkout" ? "Sign in to place your order" : reason === "review" ? "Sign in to write a review" : "Sign in to shop smarter"}
         </h2>
         <ul className="a-benefits">
           <li>
