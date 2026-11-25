@@ -112,10 +112,10 @@ export function ComparePrice({
   const saving = useCountUp(compare.state === "lowest" ? compare.saving : 0, open && compare.state === "lowest");
   const chip =
     compare.state === "lowest"
-      ? { icon: "₹", title: "Lowest price we found", sub: "vs Amazon, Flipkart & Meesho", pill: compare.saving > 0 ? `Save ${inr(compare.saving)}` : null }
+      ? { icon: "₹", title: "Lowest price we found", sub: compare.saving > 0 ? `Save ${inr(compare.saving)} vs other apps` : "Same as the lowest on other apps", cta: "Compare" }
       : compare.state === "only"
-        ? { icon: "✦", title: "Only at Minimo", sub: "Not found on Amazon, Flipkart or Meesho", pill: "Exclusive" }
-        : { icon: "♡", title: "Why buy from Minimo", sub: "Gift-wrapped by hand, ready in 48 h", pill: null };
+        ? { icon: "✦", title: "Only at Minimo", sub: "Not found on other apps", cta: "Compare" }
+        : { icon: "♡", title: "Why buy from Minimo", sub: "Gift-wrapped, ready in 48 h", cta: "See why" };
 
   const out = (site: string) => {
     track("compare_outbound", { ...tags, compare_site: site });
@@ -131,7 +131,7 @@ export function ComparePrice({
 
   return (
     <>
-      <button type="button" ref={chipRef} className={`d-cmp-chip is-${compare.state}`} onClick={() => show("chip")} aria-haspopup="dialog">
+      <button type="button" ref={chipRef} className={`d-cmp-chip is-${compare.state}`} onClick={() => show("chip")} aria-haspopup="dialog" aria-label={`${chip.cta}: ${chip.title}. ${chip.sub}`}>
         <span className="d-cmp-chip-ic" aria-hidden="true">
           {chip.icon}
         </span>
@@ -139,7 +139,10 @@ export function ComparePrice({
           <b>{chip.title}</b>
           <span>{chip.sub}</span>
         </span>
-        {chip.pill ? <span className="d-cmp-chip-pill">{chip.pill}</span> : <Icon name="chevR" size={16} />}
+        <span className="d-cmp-chip-cta">
+          {chip.cta}
+          <Icon name="chevR" size={14} />
+        </span>
       </button>
 
       <div className={`d-cmp ${open ? "is-open" : ""}`} inert={!open}>

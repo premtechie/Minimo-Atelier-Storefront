@@ -9,8 +9,10 @@
 .d-cmp-chip-ic { flex: none; width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: var(--c); color: #fff; font: 700 14px/1 var(--font-sans); }
 .d-cmp-chip-t { flex: 1; min-width: 0; display: grid; gap: 1px; font-size: 12.5px; color: var(--fg-muted); }
 .d-cmp-chip-t b { color: var(--fg); font-size: 14px; font-weight: 600; }
-.d-cmp-chip-pill { flex: none; white-space: nowrap; padding: 3px 9px; border-radius: 999px; background: #fff; border: 1px solid var(--c-line); color: var(--c); font-size: 12px; font-weight: 700; }
-.d-cmp-chip > svg { flex: none; color: var(--fg-muted); }
+.d-cmp-chip.is-lowest .d-cmp-chip-t span { color: #3d6b4b; font-weight: 600; }
+.d-cmp-chip-cta { flex: none; display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; height: 34px; padding: 0 10px 0 14px; border-radius: 999px; background: var(--c); color: #fff; font-size: 13px; font-weight: 700; letter-spacing: .01em; box-shadow: 0 4px 10px -3px color-mix(in srgb, var(--c) 60%, transparent); transition: transform var(--dur-1) var(--ease-out); }
+.d-cmp-chip:hover .d-cmp-chip-cta { transform: translateX(2px); }
+.d-cmp-chip.is-why .d-cmp-chip-cta { background: #fff; color: var(--brand); border: 1px solid var(--mm-primary-200); box-shadow: none; }
 @keyframes d-cmp-shine { 0% { transform: translateX(-100%); } 40%, 100% { transform: translateX(100%); } }
 
 .d-cmp { position: fixed; inset: 0; z-index: 130; pointer-events: none; }
