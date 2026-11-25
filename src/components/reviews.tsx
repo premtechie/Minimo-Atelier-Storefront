@@ -56,6 +56,26 @@ export function ReviewsSection({ sku, name, initial }: { sku: string; name: stri
   const [sheet, setSheet] = useState(false);
   const opener = useRef<HTMLButtonElement | null>(null);
   const params = useSearchParams();
+  const { status: auth } = useAccount();
+  const [mine, setMine] = useState<MyReview | null>(null);
+
+  // A signed-in buyer sees where their own review stands, since it isn't shown until approved.
+  const checkMine = useCallback(async () => {
+    const out = await accountPost<Eligibility>("/api/reviews/eligibility", { sku });
+    setMine(out.ok && "review" in out.data ? out.data.review : null);
+  }, [sku]);
+  useEffect(() => {
+    if (auth !== "signed_in") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading the shopper's own review from the server
+    void checkMine();
+  }, [auth, checkMine]);
+  const mineNote =
+    auth === "signed_in" && mine && mine.status !== "published" ? (
+      <p className={`rv-mine${mine.status === "hidden" ? " is-hidden" : ""}`} role="status">
+        <Icon name="clock" size={15} />
+        {mine.status === "pending" ? "Thanks! Your review is waiting for our check and will appear here once approved, usually within a day." : "Your review isn't shown. You can edit it and send it again."}
+      </p>
+    ) : null;
 
   const load = useCallback(
     async (p: number, onlyPhotos: boolean, s: Sort) => {
@@ -97,7 +117,7 @@ export function ReviewsSection({ sku, name, initial }: { sku: string; name: stri
         setSheet(true);
       }}
     >
-      <Icon name="pen" size={16} /> Write a review
+      <Icon name="pen" size={16} /> {auth === "signed_in" && mine ? "Edit your review" : "Write a review"}
     </button>
   );
 
@@ -111,6 +131,7 @@ export function ReviewsSection({ sku, name, initial }: { sku: string; name: stri
               Be the first to review {name}
             </h2>
             <p className="d-rev-note">Reviews appear here only from real orders.</p>
+            {mineNote}
             {write}
           </div>
         ) : (
@@ -143,6 +164,7 @@ export function ReviewsSection({ sku, name, initial }: { sku: string; name: stri
                     </li>
                   ))}
                 </ul>
+                {mineNote}
                 {write}
                 <p className="d-rev-note">Reviews appear here only from real orders.</p>
                 {data && data.photo_ids.length > 0 && (
@@ -225,6 +247,7 @@ export function ReviewsSection({ sku, name, initial }: { sku: string; name: stri
           onClose={() => {
             setSheet(false);
             opener.current?.focus();
+            if (auth === "signed_in") void checkMine();
           }}
         />
       )}
@@ -540,19 +563,35 @@ function ReviewForm({
     }
   }, [draftKey, mine, rating, title, body]);
 
-  const room = MAX_PHOTOS - kept.length - added.length;
+  const [preparing, setPreparing] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const count = kept.length + added.length;
+  const room = MAX_PHOTOS - count - preparing;
+  const input = (
+    <input
+      ref={file}
+      type="file"
+      accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+      multiple
+      aria-label={`Add photos, up to ${MAX_PHOTOS}`}
+      onChange={(e) => pick(e.target.files)}
+    />
+  );
 
   async function pick(files: FileList | null) {
     if (!files?.length) return;
     setMessage(null);
-    const list = [...files].slice(0, room);
+    const list = [...files].filter((f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name)).slice(0, room);
     if (files.length > room) setMessage(`You can add up to ${MAX_PHOTOS} photos.`);
     for (const f of list) {
+      setPreparing((n) => n + 1);
       try {
         const out = await shrink(f);
         setAdded((a) => [...a, { key: `${Date.now()}-${Math.random()}`, ...out, state: "ready" }]);
       } catch (e) {
         setMessage(e instanceof Error ? e.message : "That photo can't be used.");
+      } finally {
+        setPreparing((n) => n - 1);
       }
     }
     if (file.current) file.current.value = "";
@@ -669,7 +708,7 @@ function ReviewForm({
           <p className="rv-label">
             Photos <span className="rv-opt">(optional, up to {MAX_PHOTOS})</span>
           </p>
-          <div className="rv-pics">
+          <div className="rv-pics" hidden={count === 0 && preparing === 0}>
             {kept.map((p, i) => (
               <div className="rv-pic" key={p.id}>
                 {/* eslint-disable-next-line @next/next/no-img-element -- the shopper's own photo */}
@@ -691,15 +730,48 @@ function ReviewForm({
                 )}
               </div>
             ))}
-            {room > 0 && (
+            {preparing > 0 && <div className="rv-pic is-sending" aria-label="Preparing photo"><span className="rv-pic-spin" /></div>}
+            {room > 0 && count > 0 && (
               <label className="rv-add">
-                <EIcon name="camera" size={22} />
-                Add photo
-                <input ref={file} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple onChange={(e) => pick(e.target.files)} />
+                <EIcon name="plus" size={22} />
+                <span>Add</span>
+                <small>
+                  {count} of {MAX_PHOTOS}
+                </small>
+                {input}
               </label>
             )}
           </div>
-          <p className="rv-hint">JPG, PNG, WebP or iPhone photos. We shrink them and remove location data.</p>
+          {room > 0 && count === 0 && (
+            <label
+              className={`rv-drop${dragging ? " is-over" : ""}`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragging(true);
+              }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                void pick(e.dataTransfer.files);
+              }}
+            >
+              <span className="rv-drop-icon" aria-hidden="true">
+                <EIcon name="camera" size={24} />
+              </span>
+              <span className="rv-drop-text">
+                <b>Add photos</b>
+                <small>Show the gift, the wrapping or how it was used. Up to {MAX_PHOTOS}.</small>
+              </span>
+              <span className="rv-drop-btn" aria-hidden="true">
+                Choose
+              </span>
+              {input}
+            </label>
+          )}
+          <p className="rv-hint">
+            <Icon name="shield" size={13} /> JPG, PNG, WebP or iPhone photos. We shrink them and remove location data.
+          </p>
         </div>
         <p className="rv-who-note">
           <Icon name="shield" size={16} /> Shown as <b>{displayName}</b> with a Verified buyer tick

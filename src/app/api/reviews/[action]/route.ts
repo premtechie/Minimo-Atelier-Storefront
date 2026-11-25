@@ -31,7 +31,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/reviews/[act
     const sort = q.get("sort");
     const out = await fetchReviews(sku.toUpperCase(), { page: Number(q.get("page")) || 1, photos: q.get("photos") === "1", sort: sort === "highest" || sort === "lowest" ? sort : "newest" });
     if (!out) return NextResponse.json({ error: { code: "unavailable", message: "Reviews couldn't load just now." } }, { status: 503, headers: NO_STORE });
-    return NextResponse.json(out, { headers: { "cache-control": "public, max-age=60, s-maxage=300" } });
+    return NextResponse.json(out, { headers: { "cache-control": "public, max-age=30, s-maxage=60" } });
   }
   if (action === "my-photo") {
     const session = sessionOf(req);
