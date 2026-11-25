@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addLine, cartTotals, couponSaving, needBySku, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
+import { addLine, cartTotals, couponSaving, mrpGross, needBySku, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
 
 const shop: Record<string, { price: number; cap: number; name: string }> = {
   BAG: { price: 20, cap: 100, name: "Bag" },
@@ -49,5 +49,26 @@ describe("coupon saving", () => {
     expect(couponSaving(c, 500)).toBe(50);
     expect(couponSaving(c, 1235)).toBe(124);
     expect(couponSaving(c, 3289)).toBe(250);
+  });
+});
+
+describe("mrpGross", () => {
+  const cat: Record<string, { price: number; cap: number; name: string; mrp?: number | null }> = {
+    A: { price: 339, cap: 9, name: "Bag", mrp: 475 },
+    B: { price: 10, cap: 99, name: "Tag", mrp: null },
+    C: { price: 50, cap: 9, name: "Odd", mrp: 40 },
+  };
+  const lookup = (sku: string) => cat[sku];
+  const line = (sku: string, qty: number, price = cat[sku].price) => ({ key: sku, kind: "product" as const, name: sku, price, qty, image: null, parts: [{ sku, qty: 1 }] });
+
+  it("prices pieces with a real MRP at MRP, others at today's price", () => {
+    expect(mrpGross([line("A", 2), line("B", 3)], lookup)).toBe(475 * 2 + 10 * 3);
+  });
+  it("ignores an MRP below the price", () => {
+    expect(mrpGross([line("C", 1)], lookup)).toBe(50);
+  });
+  it("adds up a pack's parts at MRP", () => {
+    const pack = { key: "p", kind: "pack" as const, name: "Pack", price: 349, qty: 4, image: null, parts: [{ sku: "A", qty: 1 }, { sku: "B", qty: 1 }] };
+    expect(mrpGross([pack], lookup)).toBe((475 + 10) * 4);
   });
 });

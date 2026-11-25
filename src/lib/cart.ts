@@ -29,7 +29,7 @@ export type CartLine = {
   bulk?: boolean;
 };
 
-export type PriceLookup = (sku: string) => { price: number; cap: number; name: string } | undefined;
+export type PriceLookup = (sku: string) => { price: number; cap: number; name: string; mrp?: number | null } | undefined;
 
 /** One unit's price from today's catalogue, or null when a part is gone. */
 export function unitPrice(line: Pick<CartLine, "parts">, lookup: PriceLookup): number | null {
@@ -50,6 +50,27 @@ export function cartTotals(lines: CartLine[]) {
   const gross = lines.reduce((s, l) => s + l.price * l.qty, 0);
   const total = lines.reduce((s, l) => s + lineTotal(l), 0);
   return { gross, discount: gross - total, total, count: lines.length };
+}
+
+/**
+ * What the lines would cost at MRP: each part at its MRP where it has a real one
+ * above today's price, else at today's price. Never below the cart's gross.
+ */
+export function mrpGross(lines: CartLine[], lookup: PriceLookup) {
+  let sum = 0;
+  for (const l of lines) {
+    let unit = 0;
+    for (const p of l.parts) {
+      const hit = lookup(p.sku);
+      if (!hit) {
+        unit = l.price;
+        break;
+      }
+      unit += (hit.mrp && hit.mrp > hit.price ? hit.mrp : hit.price) * p.qty;
+    }
+    sum += Math.max(unit, l.price) * l.qty;
+  }
+  return sum;
 }
 
 /** Pieces of each SKU the whole cart needs, to check against stock. */
