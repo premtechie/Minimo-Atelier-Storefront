@@ -12,12 +12,14 @@ import { waLink } from "@/lib/whatsapp";
 import { FullTour } from "./store-tour";
 import { openSearch } from "./search-sheet";
 
-export const NAV: { href: string; label: string }[] = [
+/** `wide`: only in the top bar from 1024px; narrower screens reach it from the menu. */
+export const NAV: { href: string; label: string; wide?: boolean }[] = [
   { href: "/shop/return-gifts", label: "Shop" },
   { href: "/build", label: "Build your own" },
   { href: "/for-her", label: "For her" },
+  { href: "/jewellery", label: "Jewellery" },
   { href: "/for-him", label: "For him" },
-  { href: "/visit-our-store", label: "Visit store" },
+  { href: "/visit-our-store", label: "Visit store", wide: true },
 ];
 
 const PILLS: { href: string; label: string; icon: IconName }[] = [
@@ -26,6 +28,7 @@ const PILLS: { href: string; label: string; icon: IconName }[] = [
   { href: "/build", label: "Build your own", icon: "wand" },
   { href: "/shop/kids", label: "Kids' favourites", icon: "bottle" },
   { href: "/for-her", label: "For her", icon: "earring" },
+  { href: "/jewellery", label: "Jewellery", icon: "gem" },
   { href: "/for-him", label: "For him", icon: "watch" },
 ];
 
@@ -34,6 +37,7 @@ const MENU: { href: string; label: string }[] = [
   { href: "/build", label: "Build your own" },
   { href: "/shop/kids", label: "Kids' favourites" },
   { href: "/for-her", label: "For her" },
+  { href: "/jewellery", label: "Jewellery" },
   { href: "/for-him", label: "For him" },
   { href: "/bulk-orders", label: "Bulk & school orders" },
   { href: "/visit-our-store", label: "Visit our store" },
@@ -240,7 +244,7 @@ export function InnerHeader() {
           <Logo className="m-logo--in" />
           <nav className="m-hin-nav" aria-label="Main">
             {NAV.map((n) => (
-              <Link key={n.href} href={n.href} aria-current={path === n.href || path.startsWith(n.href + "/") || (n.label === "Shop" && path.startsWith("/shop/")) ? "page" : undefined}>
+              <Link key={n.href} href={n.href} className={n.wide ? "m-nav-wide" : undefined} aria-current={path === n.href || path.startsWith(n.href + "/") || (n.label === "Shop" && path.startsWith("/shop/")) ? "page" : undefined}>
                 {n.label}
               </Link>
             ))}

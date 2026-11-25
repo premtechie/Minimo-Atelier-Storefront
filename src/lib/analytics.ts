@@ -117,6 +117,7 @@ export function pageLabel(path: string): string {
     cart: "Cart",
     "for-her": "For Her page",
     "for-him": "For Him page",
+    jewellery: "Jewellery page",
     "return-gift-ideas": "Return gift ideas page",
     search: "Search page",
     "visit-our-store": "Visit our store page",
