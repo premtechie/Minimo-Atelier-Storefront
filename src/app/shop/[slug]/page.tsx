@@ -5,6 +5,7 @@ import { PackCard, ProductCard } from "@/components/cards";
 import { InnerHeader } from "@/components/header";
 import { Offline } from "@/components/offline";
 import { SearchButton } from "@/components/search-sheet";
+import { SortSheet } from "@/components/sort-sheet";
 import { getStore } from "@/lib/catalogue";
 import { BUDGET_BANDS, RG_TABS } from "@/lib/merch";
 import { featured, inSection } from "@/lib/store";
@@ -20,10 +21,11 @@ const COLS = {
 } as const;
 type Slug = keyof typeof COLS;
 const SORTS = [
-  ["", "Featured"],
-  ["price-asc", "Price: low to high"],
-  ["price-desc", "Price: high to low"],
-  ["new", "New arrivals"],
+  ["", "Recommended"],
+  ["price-asc", "Price, low to high"],
+  ["price-desc", "Price, high to low"],
+  ["saving", "Biggest saving"],
+  ["new", "Newest in store"],
 ] as const;
 
 /** What each collection is called in search results. */
@@ -54,9 +56,13 @@ export async function generateMetadata({ params, searchParams }: { params: Promi
   return { title: { absolute: `${m.title} · Minimo Atelier` }, description: m.description, ...pageMeta(path, m.title, m.description) };
 }
 
+/** Share of the MRP saved; 0 when there is no real MRP above the price. */
+const saving = (p: Product) => (p.mrp && p.mrp > p.price ? (p.mrp - p.price) / p.mrp : 0);
+
 function sortBy(list: Product[], sort: string) {
   if (sort === "price-asc") return [...list].sort((a, b) => a.price - b.price);
   if (sort === "price-desc") return [...list].sort((a, b) => b.price - a.price);
+  if (sort === "saving") return [...list].sort((a, b) => saving(b) - saving(a) || a.price - b.price);
   if (sort === "new") return [...list].sort((a, b) => Number(b.is_new) - Number(a.is_new));
   return featured(list);
 }
@@ -122,6 +128,13 @@ export default async function Collection({ params, searchParams }: { params: Pro
             </Link>
           )}
         </nav>
+
+        <div className="m-col-bar">
+          <p className="m-col-count">
+            {items.length + packs.length} {items.length + packs.length === 1 ? "gift" : "gifts"}
+          </p>
+          <SortSheet current={sort} options={SORTS.map(([k, label]) => ({ key: k, label, href: href({ sort: k || null, page: null }) }))} />
+        </div>
 
         <div className="m-grid m-grid--3">
           {packs.map((k) => (
