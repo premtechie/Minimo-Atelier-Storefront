@@ -6,7 +6,7 @@ import { Icon } from "./icon";
 
 /* The approved design's footer (mm-footer, d- here; rules in styles/design/footer.css). */
 const COLS: { title: string; links: [string, string][] }[] = [
-  { title: "Shop", links: [["Return gifts", "/shop/return-gifts"], ["Build your own", "/build"], ["Return gift ideas", "/return-gift-ideas"], ["For her", "/for-her"], ["For him", "/for-him"]] },
+  { title: "Shop", links: [["Return gifts", "/shop/return-gifts"], ["Build your own", "/build"], ["Return gift ideas", "/return-gift-ideas"], ["For her", "/for-her"], ["Jewellery", "/jewellery"], ["For him", "/for-him"]] },
   { title: "Help", links: [["Delivery & pickup", "/visit-our-store#store-info"], ["Bulk orders", "/bulk-orders"], ["Track order", "/orders"], ["Contact", "/visit-our-store"]] },
   { title: "About", links: [["Visit our store", "/visit-our-store"], ["Our story", "/"]] },
 ];

@@ -50,9 +50,10 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
   const { store, p } = await find((await params).sku);
   if (!p) notFound();
   const gift = p.sections.includes("return-gifts");
-  const sec = p.sections[0] ?? "kids";
-  const secName = { "return-gifts": "Return gifts", kids: "Kids' favourites", "for-her": "For her", "for-him": "For him" }[sec];
-  const secHref = sec === "for-her" || sec === "for-him" ? `/${sec}` : `/shop/${sec}`;
+  // Jewellery's breadcrumb leads to the Jewellery page rather than For her.
+  const sec = p.sections.includes("jewellery") ? "jewellery" : p.sections[0] ?? "kids";
+  const secName = { "return-gifts": "Return gifts", kids: "Kids' favourites", "for-her": "For her", "for-him": "For him", jewellery: "Jewellery" }[sec];
+  const secHref = sec === "for-her" || sec === "for-him" || sec === "jewellery" ? `/${sec}` : `/shop/${sec}`;
   const related = featured(store.live.filter((x) => x.category_slug === p.category_slug && x.sku !== p.sku)).slice(0, 4);
   const more = related.length < 4 ? featured(store.live.filter((x) => x.sections.includes(sec) && x.sku !== p.sku && !related.includes(x))).slice(0, 4 - related.length) : [];
   const cap = stockCap(p);

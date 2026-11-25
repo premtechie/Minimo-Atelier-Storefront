@@ -27,7 +27,7 @@ export type ApiCategory = z.infer<typeof ApiCategory>;
 export const ApiCatalogue = z.object({ categories: z.array(ApiCategory), products: z.array(ApiProduct) });
 export type ApiCatalogue = z.infer<typeof ApiCatalogue>;
 
-export type Section = "return-gifts" | "kids" | "for-her" | "for-him";
+export type Section = "return-gifts" | "kids" | "for-her" | "for-him" | "jewellery";
 export type BuilderRole = "packaging" | "tag" | "filler" | "hero" | "none";
 
 /** A product as the storefront uses it: the admin's fields plus where it sits on the site. */

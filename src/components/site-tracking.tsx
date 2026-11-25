@@ -99,6 +99,7 @@ export function SiteTracking() {
       "visit-our-store": "store_visit_view",
       "for-her": "for_her_view",
       "for-him": "for_him_view",
+      jewellery: "jewellery_view",
       "return-gift-ideas": "ideas_view",
     };
     const name = views[a];

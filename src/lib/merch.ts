@@ -50,6 +50,21 @@ const FOR_HER: Record<string, string> = {
   "rectange-sling-bag": "Bags & Wallets",
   "sunflower-bag": "Bags & Wallets",
 };
+/**
+ * Jewellery: the admin's jewellery categories, grouped for the Jewellery page.
+ * They stay under For Her too; this is a second way in, not a move.
+ */
+const JEWELLERY: Record<string, string> = {
+  earrings: "Earrings",
+  necklace: "Necklaces & Chains",
+  chain: "Necklaces & Chains",
+  bracelet: "Bracelets & Rings",
+  "finger-rings": "Bracelets & Rings",
+  charms: "Charms",
+};
+export const jewelleryGroupFor = (slug: string) => JEWELLERY[slug] ?? null;
+export const JEWELLERY_GROUPS = ["Earrings", "Necklaces & Chains", "Bracelets & Rings", "Charms"];
+
 /** Girls' hair pieces also work as return-gift fillers (plan, section 4). */
 const HER_FILLERS = ["hair-ties", "hair-claw", "hair-pins"];
 const FOR_HIM = ["wallet-adult", "photo-frame", "gift-hampers", "home-and-living", "lamp"];
@@ -63,6 +78,7 @@ export function sectionsFor(slug: string, name: string): Section[] {
   const out: Section[] = [];
   if (FILLERS.includes(slug) || PACKAGING.includes(slug) || HER_FILLERS.includes(slug)) out.push("return-gifts");
   if (slug in FOR_HER) out.push("for-her");
+  if (slug in JEWELLERY) out.push("jewellery");
   if ((FOR_HIM.includes(slug) || FOR_HIM_NAMES.test(name)) && !KIDDY_NAMES.test(name)) out.push("for-him");
   if (HEROES.includes(slug) || out.length === 0) out.push("kids");
   return out;

@@ -5,7 +5,7 @@ import { waLink } from "@/lib/whatsapp";
 import { EIcon } from "./icon";
 
 /** Pages where the design shows the floating WhatsApp button. */
-const SHOW_ON = ["/for-her", "/for-him", "/visit-our-store"];
+const SHOW_ON = ["/for-her", "/jewellery", "/for-him", "/visit-our-store"];
 
 export function WaFab() {
   const path = usePathname();

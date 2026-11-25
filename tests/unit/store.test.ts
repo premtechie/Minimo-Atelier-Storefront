@@ -42,3 +42,16 @@ describe("further photos", () => {
     expect(toProduct({ ...base, more_photos: [] }).morePhotoUrls).toEqual([]);
   });
 });
+
+describe("jewellery", () => {
+  it("puts the admin's jewellery categories on the Jewellery page and keeps them under For her", () => {
+    for (const slug of ["earrings", "necklace", "chain", "bracelet", "finger-rings", "charms"]) {
+      const s = toProduct(p("J", { category_slug: slug })).sections;
+      expect(s).toContain("jewellery");
+      expect(s).toContain("for-her");
+    }
+    for (const slug of ["hair-claw", "hair-ties", "korean-bags", "mirror", "jewellery-box", "key-chains"]) {
+      expect(toProduct(p("X", { category_slug: slug })).sections).not.toContain("jewellery");
+    }
+  });
+});
