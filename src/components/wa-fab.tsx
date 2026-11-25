@@ -11,7 +11,7 @@ export function WaFab() {
   const path = usePathname();
   if (!SHOW_ON.some((p) => path === p || path.startsWith(p + "/"))) return null;
   return (
-    <a className="m-wafab" href={waLink("Hi Minimo Atelier! I have a question.")} target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <a className="m-wafab" data-wa-source="Floating chat button" href={waLink("Hi Minimo Atelier! I have a question.")} target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
       <EIcon name="wa" size={26} />
     </a>
   );

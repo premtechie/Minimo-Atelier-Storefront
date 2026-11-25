@@ -351,7 +351,7 @@ export function BuyBox({ item, eyebrow, badge, title }: { item: BuyItem; eyebrow
           )}
         </div>
       )}
-      <a className="d-pdp-ask" href={waLink(`Hi Minimo, I'd like ${q} × ${item.name}.`)} target="_blank" rel="noopener">
+      <a className="d-pdp-ask" data-wa-source="Product: ask on WhatsApp" href={waLink(`Hi Minimo, I'd like ${q} × ${item.name}.`)} target="_blank" rel="noopener">
         Ask on WhatsApp
       </a>
       {item.kind === "pack" && (

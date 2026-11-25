@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { waLink } from "@/lib/whatsapp";
+import { openWhatsApp } from "./site-tracking";
 import { EIcon } from "./icon";
 
 /** Bulk and school order request, sent to the shop on WhatsApp. The design's quote panel (styles/design/visit.css). */
@@ -31,7 +32,7 @@ export function BulkForm() {
           v("date") && `Needed by: ${new Date(v("date")).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`,
           v("notes") && `Notes: ${v("notes")}`,
         ].filter(Boolean);
-        window.open(waLink(lines.join("\n")), "_blank", "noopener");
+        openWhatsApp(waLink(lines.join("\n")), "Bulk order form");
       }}
     >
       <h3 id="h-quote">Get a quote</h3>

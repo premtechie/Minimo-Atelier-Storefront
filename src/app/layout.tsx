@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Allura, DM_Sans, Montserrat, Varela_Round } from "next/font/google";
 import { Clarity } from "@/components/clarity";
 import { Footer } from "@/components/footer";
+import { SiteTracking } from "@/components/site-tracking";
 import { WaFab } from "@/components/wa-fab";
 import { SearchSheet } from "@/components/search-sheet";
 import { ShopProvider } from "@/components/shop-provider";
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </AccountProvider>
         </ShopProvider>
         <Clarity />
+        <SiteTracking />
       </body>
     </html>
   );

@@ -232,7 +232,7 @@ export function FullTour({ onClose, onDetails }: { onClose: () => void; onDetail
         <a className="e-sv-btn" href={SHOP.mapsUrl} target="_blank" rel="noopener">
           <EIcon name="pin" sm /> Get directions
         </a>
-        <a className="e-sv-btn e-sv-btn--wa" href={waLink("Hi Minimo, I'd like to visit the store.")} target="_blank" rel="noopener">
+        <a className="e-sv-btn e-sv-btn--wa" data-wa-source="Store tour: plan a visit" href={waLink("Hi Minimo, I'd like to visit the store.")} target="_blank" rel="noopener">
           <EIcon name="wa" sm /> Plan a visit
         </a>
       </div>
