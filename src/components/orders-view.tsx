@@ -380,6 +380,23 @@ export function OrderCard({ s }: { s: SavedOrder }) {
 
 /* ---------------- One order ---------------- */
 
+/** The parcel's tracking ID, opening the courier's tracking page when there is one. */
+function TrackingId({ o }: { o: Order }) {
+  const url = o.tracking?.url;
+  return (
+    <div className="e-od-trk">
+      <span>
+        {o.courier ? `${o.courier} · ` : ""}Tracking ID <b>{o.tracking_number}</b>
+      </span>
+      {url && (
+        <a className="e-od-btn e-od-btn--primary e-od-trk-btn" href={url} target="_blank" rel="noopener noreferrer">
+          Track package <Icon name="chevR" size={14} />
+        </a>
+      )}
+    </div>
+  );
+}
+
 export function OrderDetail({ number, links = {} }: { number: string; links?: Record<string, string> }) {
   const { saved, mounted, state, refresh } = useOrders();
   const { toast } = useShop();
@@ -491,6 +508,7 @@ export function OrderDetail({ number, links = {} }: { number: string; links?: Re
                   <Icon name={pick ? "store" : "truck"} size={16} />
                   <span>{eta(o)}</span>
                 </div>
+                {o.tracking_number && <TrackingId o={o} />}
                 <div className="e-od-rail" style={{ "--n": st.length, "--k": cur } as React.CSSProperties}>
                   {st.map((x, k) => (
                     <span key={x.key} className={k < cur ? "is-done" : k === cur ? "is-now" : ""} title={x.title}>
@@ -516,8 +534,28 @@ export function OrderDetail({ number, links = {} }: { number: string; links?: Re
                     <div className="e-od-tl-txt">
                       <b>{x.title}</b>
                       <span>{k <= cur ? x.done : x.wait}</span>
+                      {x.key === "shipped" && k <= cur && o.tracking?.url && (
+                        <a className="e-od-track" href={o.tracking.url} target="_blank" rel="noopener noreferrer">
+                          Track package <Icon name="chevR" size={14} />
+                        </a>
+                      )}
                       <time>{k <= cur ? fmtDate(x.at || o.placed_at) : k === st.length - 1 || x.day ? `Expected ${dayAfter(o.placed_at, x.day)}` : "Next"}</time>
                     </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {!cancelled && !!o.tracking?.events.length && (
+            <section className="e-od-sec">
+              <h2>Courier updates</h2>
+              <ol className="e-od-scans">
+                {o.tracking.events.map((e, i) => (
+                  <li key={i}>
+                    <b>{e.text}</b>
+                    {e.place && <span>{e.place}</span>}
+                    {e.at && <time>{fmtDate(e.at)}</time>}
                   </li>
                 ))}
               </ol>
@@ -573,6 +611,21 @@ export function OrderDetail({ number, links = {} }: { number: string; links?: Re
                 {pick ? "Minimo Atelier, inside Honer Vivantis, Hyderabad" : o.address ? `${o.address.line}${o.address.pin ? `, ${o.address.pin}` : ""}` : ""}
               </span>
             </p>
+            {o.tracking_number && (
+              <p className="e-od-kv">
+                <Icon name="truck" size={16} />
+                <span>
+                  <b>{o.courier || "Courier"} tracking</b>
+                  {o.tracking?.url ? (
+                    <a className="e-od-trk-link" href={o.tracking.url} target="_blank" rel="noopener noreferrer">
+                      {o.tracking_number}
+                    </a>
+                  ) : (
+                    o.tracking_number
+                  )}
+                </span>
+              </p>
+            )}
             {o.phone && (
               <p className="e-od-kv">
                 <Icon name="phone" size={16} />

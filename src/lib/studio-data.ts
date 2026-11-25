@@ -1,4 +1,4 @@
-import { BAG_SLUGS, CONTAINERS, PACKS, PHOTO_BAG, RG_TABS, type Container } from "./merch";
+import { BAG_SLUGS, CONTAINERS, PACKS, PHOTO_BAG, RG_TABS, TOP, type Container } from "./merch";
 import { featured, stockCap, type Store } from "./store";
 import type { Product } from "./types";
 import type { Mode } from "./studio";
@@ -60,6 +60,39 @@ function tab(name: string, list: Product[], limit = PER_TAB, orPlaceholder = fal
   return items.length ? { name, items } : null;
 }
 
+/**
+ * Bags shown from above as they fill, with their own photos closing them up.
+ */
+function topFor(p: Product) {
+  const n = p.name;
+  if (p.category_slug === "potli-bag") return TOP.potli;
+  if (/sunflower|korean jute/i.test(n)) return TOP.jutebow;
+  // Slings sold with the pink sample photo share its photos.
+  if (/^(rectange|rounded) sling|bubble sling|bunny ear|embroidery sling/i.test(n)) return TOP.sling;
+  if (/^paper bags?\b/i.test(n)) {
+    if (/6\s*x\s*6\b/i.test(n)) return TOP.thanks;
+    if (/6\s*x\s*9\b/i.test(n)) return TOP.paisley;
+    if (/8\s*x\s*10\b/i.test(n)) return TOP.jungle;
+    if (/10\s*x\s*12\b/i.test(n)) return TOP.bday;
+  }
+  if (/^round jelly/i.test(n)) return TOP.jround;
+  if (/^mini jelly/i.test(n)) return TOP.jmini;
+  if (/^chest jelly/i.test(n)) return TOP.jchest;
+  if (/^lunch bags? - small/i.test(n)) return TOP.lunch;
+  if (/^zesto lunch/i.test(n)) return TOP.zesto;
+  if (/^korean sling/i.test(n)) return TOP.korean;
+  // Sold with the cream quilted sample photo.
+  if (/^kuromi bag/i.test(n)) return TOP.kuromi;
+  if (/^3 zip cloth/i.test(n)) return TOP.tote3;
+  if (/^pi(c)?nic bags?/i.test(n)) return TOP.batman;
+  if (/^motor bike/i.test(n)) return TOP.moto;
+  if (/^donut/i.test(n)) return TOP.donut;
+  if (/^space blue/i.test(n)) return TOP.space;
+  if (/^football/i.test(n)) return TOP.football;
+  if (/^glitter bag|^k\s*-\s*pop/i.test(n)) return TOP.quilt;
+  return undefined;
+}
+
 export function studioData(store: Store): StudioData {
   const live = store.live;
   const boxes: StudioBox[] = [];
@@ -84,7 +117,9 @@ export function studioData(store: Store): StudioData {
     .filter((p) => BAG_SLUGS.includes(p.category_slug) && !used.has(p.sku) && !!(p.photoUrl ?? p.art))
     .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name));
   for (const p of photoBags) {
-    boxes.push({ ...PHOTO_BAG, key: p.sku.toLowerCase(), art: "", name: p.name, sku: p.sku, price: p.price, cap: capOf(p), img: (p.photoUrl ?? p.art)! });
+    const t = topFor(p);
+    const top = t ? { top: t } : {};
+    boxes.push({ ...PHOTO_BAG, ...top, key: p.sku.toLowerCase(), art: "", name: p.name, sku: p.sku, price: p.price, cap: capOf(p), img: (p.photoUrl ?? p.art)! });
   }
   const fillers = live.filter((p) => p.role === "filler" && p.tab);
   const rg = RG_TABS.map((t) => tab(t, fillers.filter((p) => p.tab === t)));

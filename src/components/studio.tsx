@@ -7,7 +7,8 @@ import { Icon } from "./icon";
 import { useShop } from "./shop-provider";
 import type { CartPart } from "@/lib/cart";
 import { inr, plural } from "@/lib/format";
-import { buildName, CAPS, decodeShare, encodeShare, itemStyle, MAX_ITEMS, slots, tabForWho, WHO, type Mode, type SavedBuild } from "@/lib/studio";
+import { buildName, CAPS, decodeShare, encodeShare, itemStyle, MAX_ITEMS, slots, spotStyle, tabForWho, topSpot, WHO, type Spot, type Mode, type SavedBuild } from "@/lib/studio";
+import { TOP_H, TOP_W, topFrame } from "@/lib/merch";
 import type { StudioBox, StudioData, StudioPiece, StudioStart } from "@/lib/studio-data";
 
 type It = { sku: string; u: number };
@@ -70,6 +71,7 @@ function BoxArt({
   onOut?: (u: number) => void;
   hf?: number;
 }) {
+  if (box.top) return <TopArt {...{ box, items, pieces, state, tagName, tagged, className, boxRef, itemsRef, ghostsRef, onOut }} />;
   const s = slots(items.length, box);
   const [aw, ah] = box.aspect;
   const style = { "--ar": `${aw}/${ah}`, "--arw": aw, "--arh": ah, "--w": box.w, "--hf": hf ?? box.hf, "--rim": `${(box.rim * 100).toFixed(2)}%` } as CSSProperties;
@@ -120,6 +122,134 @@ function BoxArt({
   );
 }
 
+/** Lines under the photo while the pack closes, one per photo. */
+const TOP_STEPS = {
+  bag: ["Tissue tucked in over the gifts", "Handles together, tag tied on"],
+  box: ["Tissue folded over, left then right", "Lid on, ribbon tied"],
+  potli: ["Drawstrings pulled, the mouth gathers", "Bow tied"],
+  zip: ["Zipped shut", "Tag tied on"],
+  flap: ["Flap closed over the gifts", "Tag tied on"],
+} as const;
+/** Packs whose last photo only adds the name tag, so they stop a step early without one. */
+const BAG_COUNTS = [10, 15, 20, 25, 30];
+
+function BagCount({ value, max, onChange }: { value: number | null; max: number; onChange: (v: number | null) => void }) {
+  return (
+    <label className="st-inline">
+      <input
+        autoFocus
+        inputMode="numeric"
+        maxLength={3}
+        defaultValue={value ?? ""}
+        placeholder="e.g. 18"
+        aria-label="Number of bags"
+        onFocus={(e) => e.currentTarget.select()}
+        onChange={(e) => {
+          const v = Math.round(Number(e.target.value.replace(/\D/g, "")));
+          onChange(v >= 1 ? Math.min(v, max) : null);
+        }}
+      />
+      <small>bags</small>
+    </label>
+  );
+}
+
+const TAG_LAST = { bag: 1100, zip: 1200, flap: 1200 } as Partial<Record<string, number>>;
+
+/** The pack seen from above: gifts lie inside its opening, and it closes in real photos. */
+function TopArt({
+  box,
+  items,
+  pieces,
+  state = 0,
+  tagName,
+  tagged = true,
+  className = "",
+  boxRef,
+  itemsRef,
+  ghostsRef,
+  onOut,
+}: {
+  box: StudioBox;
+  items: It[];
+  pieces: Record<string, StudioPiece>;
+  state?: 0 | 1 | 2;
+  tagName?: string;
+  tagged?: boolean;
+  className?: string;
+  boxRef?: React.Ref<HTMLDivElement>;
+  itemsRef?: React.Ref<HTMLDivElement>;
+  ghostsRef?: React.Ref<HTMLDivElement>;
+  onOut?: (u: number) => void;
+}) {
+  const t = box.top!;
+  // Each gift keeps the spot it landed on, so the pile only grows on top.
+  const [landed] = useState(() => new Map<number, Spot>());
+  const max = MAX_ITEMS[box.hamper ? "hm" : "rg"];
+  const pile: Spot[] = [];
+  for (const it of items) {
+    let p = landed.get(it.u);
+    if (!p) {
+      p = topSpot(t, pile, it.u * 7 + pile.length + 1, max, pieces[it.sku]?.size ?? 0.8);
+      landed.set(it.u, p);
+    }
+    pile.push(p);
+  }
+  const st = pile.map(spotStyle);
+  const style = { "--ar": `${TOP_W}/${TOP_H}`, "--arw": TOP_W, "--arh": TOP_H, "--clip": t.clip } as CSSProperties;
+  const live = !!onOut;
+  // A bag without the name tag stops at the tissue.
+  const last = TAG_LAST[t.kind] && !tagged ? 1 : 2;
+  return (
+    <div
+      ref={boxRef}
+      className={`st-box is-top is-top-${t.kind} ${box.hamper ? "is-hamper" : ""} ${state === 1 ? "is-wrapping" : ""} ${state === 2 ? "is-wrapping is-wrapped" : ""} ${className}`}
+      style={style}
+    >
+      {/* eslint-disable @next/next/no-img-element */}
+      <img className="st-top-f st-top-f0" src={topFrame(t, 0)} alt="" draggable={false} />
+      <div className="st-top-in">
+        <div className="st-items" ref={itemsRef}>
+          {items.map((it, i) => {
+            const p = pieces[it.sku];
+            if (!p) return null;
+            const img = <SafeImg src={p.img} alt="" draggable={false} />;
+            return live ? (
+              <button key={it.u} type="button" className={`st-it ${p.cut ? "" : "is-photo"}`} data-u={it.u} style={st[i]} aria-label={`Take out ${p.name}`} onClick={() => onOut(it.u)}>
+                {img}
+              </button>
+            ) : (
+              <span key={it.u} className={`st-it ${p.cut ? "" : "is-photo"}`} style={st[i]}>
+                {img}
+              </span>
+            );
+          })}
+        </div>
+        <i className="st-top-shade" style={{ background: t.shade }} />
+      </div>
+      {live && <div className="st-items st-items--ghosts" ref={ghostsRef} aria-hidden="true" />}
+      {live && (
+        <div className="st-wrap" aria-hidden="true">
+          <img className="st-top-f st-top-f1" src={topFrame(t, 1)} alt="" />
+          {last === 2 && <img className="st-top-f st-top-f2" src={topFrame(t, 2)} alt="" />}
+          {t.tag && last === 2 && tagName && (
+            <b className="st-top-name" style={{ left: `${t.tag.x}%`, top: `${t.tag.y}%`, rotate: `${t.tag.r}deg`, width: `${t.tag.w}%` }}>
+              {tagName}
+            </b>
+          )}
+        </div>
+      )}
+      {live && state > 0 && (
+        <span className="st-top-step" aria-hidden="true">
+          <span>{TOP_STEPS[t.kind][0]}</span>
+          {last === 2 && <span>{TOP_STEPS[t.kind][1]}</span>}
+        </span>
+      )}
+      {/* eslint-enable @next/next/no-img-element */}
+    </div>
+  );
+}
+
 export function Studio({ data, start }: { data: StudioData; start: StudioStart }) {
   const { add, toast } = useShop();
   const pieces = useMemo(() => {
@@ -141,7 +271,8 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
   const [traySwap, setTraySwap] = useState(0);
   const [wrap, setWrap] = useState<0 | 1 | 2>(0);
   const [name, setName] = useState("");
-  const [guests, setGuests] = useState(20);
+  const [guests, setGuests] = useState<number | null>(null);
+  const [guestsCustom, setGuestsCustom] = useState(false);
   const [hinted, setHinted] = useState(false);
   const [boxIn, setBoxIn] = useState(false);
   const [saved, setSaved] = useState<SavedBuild[]>([]);
@@ -280,6 +411,90 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
     meterRef.current?.animate([{ translate: "0 0" }, { translate: "-5px 0" }, { translate: "5px 0" }, { translate: "-2px 0" }, { translate: "0 0" }], { duration: 380 });
   };
 
+  const land = (el: HTMLElement, delay: number) => {
+    const at = (k: number) => `translate(-50%, 0) rotate(var(--r)) scale(${k})`;
+    el.animate(
+      [
+        { transform: at(1.55), opacity: 0, filter: "blur(3px)" },
+        { transform: at(1.25), opacity: 1, filter: "blur(1px)", offset: 0.35 },
+        { transform: at(0.97), filter: "blur(0)", offset: 0.78 },
+        { transform: at(1.01), offset: 0.9 },
+        { transform: at(1) },
+      ],
+      { duration: 650, delay, easing: "cubic-bezier(.45,0,.4,1)", fill: "backwards" },
+    );
+    el.querySelector("img")?.animate(
+      [{ filter: "drop-shadow(14px 18px 12px rgba(45,25,12,.12))" }, { filter: "drop-shadow(4px 6px 4px rgba(45,25,12,.32)) drop-shadow(1px 1px 1px rgba(45,25,12,.35))" }],
+      { duration: 520, delay, easing: "ease-in", fill: "backwards" },
+    );
+  };
+
+  /*
+   * Seen from above, a gift tips off its card (or the finger), tumbles in an
+   * arc towards the camera, then drops onto the pile and settles, its shadow
+   * tightening as it lands. It flies above the page so the bag's rim doesn't
+   * cut it off, and the real piece takes over where it lands.
+   */
+  const tumble = (el: HTMLElement, u: number, from?: Fly) => {
+    const sku = items.find((x) => x.u === u)?.sku;
+    const src = el.querySelector("img");
+    if (!src) return;
+    const to = el.getBoundingClientRect();
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const tx = to.left + to.width / 2;
+    const ty = to.top + to.height / 2;
+    let fx = tx;
+    let fy = ty - 220;
+    let k0 = 1.1;
+    let r0 = from?.rot ?? -12;
+    if (from) {
+      fx = from.x;
+      fy = from.y;
+      k0 = from.scale;
+    } else {
+      const card = sku ? trayRef.current?.querySelector(`[data-sku="${sku}"] img`) : null;
+      if (card) {
+        const c = card.getBoundingClientRect();
+        fx = c.left + c.width / 2;
+        fy = c.top + c.height / 2;
+        k0 = Math.max(0.5, Math.min(1.6, c.width / Math.max(w, 1)));
+        r0 = 0;
+      }
+    }
+    const rot = parseFloat(el.style.getPropertyValue("--r")) || 0;
+    const ghost = src.cloneNode(true) as HTMLImageElement;
+    ghost.className = `st-ghost st-tumble ${el.classList.contains("is-photo") ? "is-photo" : ""}`;
+    Object.assign(ghost.style, { left: `${tx - w / 2}px`, top: `${ty - h / 2}px`, width: `${w}px`, height: `${h}px` });
+    document.body.appendChild(ghost);
+    el.style.opacity = "0";
+    const dx = fx - tx;
+    const dy = fy - ty;
+    // Arc: up and over, higher the further it travels.
+    const lift = Math.min(dy, 0) * 0.45 - 40 - Math.abs(dx) * 0.12;
+    const spin = (dx > 0 ? -1 : 1) * 28;
+    const a = ghost.animate(
+      [
+        { transform: `translate(${dx}px, ${dy}px) rotate(${r0}deg) scale(${k0})`, filter: "drop-shadow(4px 6px 5px rgba(45,25,12,.25))" },
+        { transform: `translate(${dx * 0.92}px, ${dy * 0.92 - 14}px) rotate(${r0 + spin * 0.25}deg) scale(${k0 * 1.04})`, offset: 0.12 },
+        { transform: `translate(${dx * 0.45}px, ${lift}px) rotate(${rot + spin}deg) scale(1.45)`, filter: "drop-shadow(26px 34px 18px rgba(45,25,12,.16))", offset: 0.55 },
+        { transform: `translate(0, 0) rotate(${rot - spin * 0.08}deg) scale(.97)`, filter: "drop-shadow(4px 6px 4px rgba(45,25,12,.32))", offset: 0.88 },
+        { transform: `translate(0, 0) rotate(${rot}deg) scale(1)`, filter: "drop-shadow(4px 6px 4px rgba(45,25,12,.32))" },
+      ],
+      { duration: from ? 560 : 760, easing: "cubic-bezier(.45,.05,.35,1)" },
+    );
+    a.onfinish = a.oncancel = () => {
+      el.style.opacity = "";
+      ghost.remove();
+      // The pile gives a little under the new piece.
+      itemsRef.current?.querySelectorAll<HTMLElement>(".st-it").forEach((o) => {
+        if (o === el) return;
+        o.animate([{ scale: "1" }, { scale: ".985" }, { scale: "1" }], { duration: 260, easing: "ease-out" });
+      });
+      el.animate([{ scale: "1.03" }, { scale: ".99" }, { scale: "1" }], { duration: 240, easing: "ease-out" });
+    };
+  };
+
   // A new piece flies from the tray (or the finger) and lands in its slot.
   useLayoutEffect(() => {
     const f = fly.current;
@@ -287,6 +502,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
       fly.current = null;
       const el = itemsRef.current?.querySelector<HTMLElement>(`[data-u="${f.u}"]`);
       if (!el || reduced()) return burst();
+      if (box?.top) return tumble(el, f.u, f.from);
       const to = el.getBoundingClientRect();
       const tx = to.left + to.width / 2;
       const ty = to.top + to.height / 2;
@@ -312,6 +528,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
     if (dropIn.current) {
       dropIn.current = false;
       if (reduced()) return;
+      if (box?.top) return itemsRef.current?.querySelectorAll<HTMLElement>(".st-it").forEach((el, i) => land(el, 120 + i * 70));
       itemsRef.current?.querySelectorAll<HTMLElement>(".st-it").forEach((el, i) =>
         el.animate([{ transform: "translate(-50%, -120px) rotate(var(--r))", opacity: 0 }, { transform: "translate(-50%, 0) rotate(var(--r))", opacity: 1 }], {
           duration: 520,
@@ -321,6 +538,7 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
         }),
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per change of the pieces
   }, [items]);
 
   // A saved build shrinks into its card in the list.
@@ -451,13 +669,14 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
     setTimeout(() => {
       setWrap((w) => (w ? 2 : w));
       burst();
-    }, reduced() ? 0 : 650);
-    setGuests((g) => Math.max(1, Math.min(g, maxGuests)));
+    }, reduced() ? 0 : box?.top ? (!tag && TAG_LAST[box.top.kind]) || box.top.ms : 650);
+    setGuests((g) => (g == null ? g : Math.max(1, Math.min(g, maxGuests))));
     if (window.innerWidth < 768) setTimeout(() => doneRef.current?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "center" }), 900);
   };
   const toCart = () => {
     if (!box || !items.length) return;
-    const qty = rg ? Math.max(1, Math.min(guests, maxGuests)) : 1;
+    if (rg && !guests) return toast("Pick how many bags you need first.");
+    const qty = rg ? Math.max(1, Math.min(guests ?? 1, maxGuests)) : 1;
     if (canMake < 1) return toast("We can't make this one from today's stock. Swap a piece and try again.");
     const label = rg ? "Your return-gift bag" : "Your hamper";
     add({
@@ -946,6 +1165,33 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                 </label>
               )}
             </div>
+            {rg && (
+              <>
+                <p className="st-optlabel">How many bags?</p>
+                <div className="st-budgetwrap">
+                  <div className="st-budget" role="radiogroup" aria-label="How many bags">
+                    {BAG_COUNTS.map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        role="radio"
+                        aria-checked={!guestsCustom && guests === v}
+                        onClick={() => {
+                          setGuestsCustom(false);
+                          setGuests(v);
+                        }}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                    <button type="button" role="radio" aria-checked={guestsCustom} onClick={() => setGuestsCustom(true)}>
+                      Custom
+                    </button>
+                  </div>
+                  {guestsCustom && <BagCount value={guests} max={maxGuests} onChange={setGuests} />}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="st-trayhead">
@@ -1047,24 +1293,34 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                 <input maxLength={rg ? 14 : 60} placeholder={rg ? "e.g. Aarav turns 6" : "Happy birthday, love!"} value={name} onChange={(e) => setName(e.target.value)} />
               </label>
               {rg && (
-                <div className="st-guests">
-                  <span>Guests</span>
+                <div className={`st-guests ${guests ? "" : "is-empty"}`}>
+                  <span>How many bags?</span>
                   <div className="m-qty">
-                    <button type="button" aria-label="5 fewer" disabled={guests <= 5} onClick={() => setGuests((g) => Math.max(5, g - 5))}>
+                    <button type="button" aria-label="1 fewer" disabled={!guests || guests <= 1} onClick={() => setGuests((g) => Math.max(1, (g ?? 1) - 1))}>
                       <Icon name="minus" size={15} />
                     </button>
-                    <output aria-live="polite">{guests}</output>
-                    <button type="button" aria-label="5 more" disabled={guests + 5 > maxGuests} onClick={() => setGuests((g) => Math.min(maxGuests, g + 5))}>
+                    <input
+                      inputMode="numeric"
+                      aria-label="Number of bags"
+                      placeholder="0"
+                      value={guests ?? ""}
+                      onFocus={(e) => e.currentTarget.select()}
+                      onChange={(e) => {
+                        const v = Math.round(Number(e.target.value.replace(/\D/g, "")));
+                        setGuests(v >= 1 ? Math.min(v, maxGuests) : null);
+                      }}
+                    />
+                    <button type="button" aria-label="1 more" disabled={(guests ?? 0) + 1 > maxGuests} onClick={() => setGuests((g) => Math.min(maxGuests, (g ?? 0) + 1))}>
                       <Icon name="plus" size={15} />
                     </button>
                   </div>
                 </div>
               )}
               {rg && Number.isFinite(canMake) && canMake < 300 && (
-                <p className={`st-done-stock ${canMake < guests ? "is-short" : ""}`}>
+                <p className={`st-done-stock ${guests && canMake < guests ? "is-short" : ""}`}>
                   {canMake < 1
                     ? "One of these pieces just sold out. Unwrap and swap it."
-                    : canMake < guests
+                    : guests && canMake < guests
                       ? `We can make ${plural(canMake, "bag", "bags")} like this from today's stock. Swap a piece for more, or message us.`
                       : `We can make up to ${plural(canMake, "bag", "bags")} like this today.`}
                 </p>
@@ -1073,19 +1329,25 @@ export function Studio({ data, start }: { data: StudioData; start: StudioStart }
                 <span>
                   {rg ? (
                     <>
-                      {inr(total)} × <b>{Math.min(guests, maxGuests)}</b> bags
+                      {guests ? (
+                        <>
+                          {inr(total)} × <b>{Math.min(guests, maxGuests)}</b> {Math.min(guests, maxGuests) === 1 ? "bag" : "bags"}
+                        </>
+                      ) : (
+                        `${inr(total)} a bag · pick how many`
+                      )}
                     </>
                   ) : (
                     "1 hamper"
                   )}
                 </span>
-                <b>{inr(rg ? total * Math.min(guests, maxGuests) : total)}</b>
+                <b>{inr(rg ? total * Math.min(guests ?? 1, maxGuests) : total)}</b>
               </div>
               <div className="st-done-btns">
                 <button type="button" className="st-btn st-btn--ghost" onClick={() => setWrap(0)}>
                   Unwrap and edit
                 </button>
-                <button type="button" className="st-btn st-btn--primary" onClick={toCart} disabled={canMake < 1}>
+                <button type="button" className="st-btn st-btn--primary" onClick={toCart} disabled={canMake < 1 || (rg && !guests)}>
                   <Icon name="bag" size={16} /> Add to cart
                 </button>
               </div>

@@ -1,4 +1,4 @@
-import type { Container } from "./merch";
+import { TOP_H, TOP_W, type Container, type TopView } from "./merch";
 
 export type Mode = "rg" | "hm";
 
@@ -78,6 +78,66 @@ export function itemStyle(s: Slot, i: number, c: Pick<Container, "ih" | "hamper"
     width: `${(w * 100).toFixed(2)}%`,
     "--r": `${s.rot.toFixed(1)}deg`,
     zIndex: s.row ? 20 + i : 10 + i,
+  } as React.CSSProperties;
+}
+
+/** Where one gift landed in an overhead pack, in photo pixels. */
+export type Spot = { x: number; y: number; s: number; rot: number };
+
+/** A small seeded random, so a gift lands in the same place every time it is drawn. */
+function rand(seed: number) {
+  let a = (seed * 2654435761) >>> 0 || 1;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Where the next gift lands on the pile, given the gifts already in the pack.
+ * Like dropping things into a real bag: it falls into the emptiest part of the
+ * opening, partly over what is there once it fills, and stays where it lands.
+ */
+export function topSpot(t: TopView, prev: Spot[], seed: number, max: number, size = 1): Spot {
+  const { x, y, w, h } = t.area;
+  const base = Math.min(t.size, Math.sqrt((w * h) / (max * 0.7)));
+  const s = base * Math.min(1.25, Math.max(0.9, size / 0.8));
+  const r = rand(seed);
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  let best: Spot | null = null;
+  let bestScore = Infinity;
+  for (let k = 0; k < 24; k++) {
+    // Keep the centre inside the opening; the edges may tuck under the rim.
+    const px = x + s * 0.3 + r() * Math.max(1, w - s * 0.6);
+    const py = y + s * 0.3 + r() * Math.max(1, h - s * 0.6);
+    if (t.kind === "potli" && ((px - cx) / (w / 2)) ** 2 + ((py - cy) / (h / 2)) ** 2 > 0.75) continue;
+    let score = Math.hypot((px - cx) / w, (py - cy) / h) * s * 0.4;
+    for (const q of prev) {
+      const d = Math.hypot(px - q.x, py - q.y);
+      const reach = (s + q.s) * 0.5;
+      if (d < reach) score += (reach - d) ** 2 / reach;
+    }
+    if (score < bestScore) {
+      bestScore = score;
+      best = { x: px, y: py, s, rot: (r() - 0.5) * 44 };
+    }
+  }
+  return best ?? { x: cx, y: cy, s, rot: 0 };
+}
+
+/** Inline style for a gift lying at a spot, in % of the photo. Later gifts lie on top. */
+export function spotStyle(p: Spot, i: number) {
+  return {
+    left: `${((p.x / TOP_W) * 100).toFixed(2)}%`,
+    bottom: `${(((TOP_H - p.y - p.s / 2) / TOP_H) * 100).toFixed(2)}%`,
+    width: `${((p.s / TOP_W) * 100).toFixed(2)}%`,
+    height: `${((p.s / TOP_H) * 100).toFixed(2)}%`,
+    "--r": `${p.rot.toFixed(1)}deg`,
+    zIndex: 10 + i,
   } as React.CSSProperties;
 }
 
