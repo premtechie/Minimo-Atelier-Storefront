@@ -3,7 +3,7 @@ import { adminFetch } from "./catalogue";
 import type { ReviewPage } from "./reviews";
 
 /** How long the site keeps a product's reviews before asking the admin again (seconds). */
-export const REVIEWS_REVALIDATE = 300;
+export const REVIEWS_REVALIDATE = 60;
 
 /** A product's published reviews (first page), or null when the admin can't be reached. */
 export async function fetchReviews(sku: string, q: { page?: number; photos?: boolean; sort?: string } = {}): Promise<ReviewPage | null> {
