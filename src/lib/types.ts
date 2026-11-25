@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+export const CompareSite = z.enum(["amazon", "flipkart", "meesho"]);
+export type CompareSite = z.infer<typeof CompareSite>;
+export const PriceCheck = z.object({
+  checked_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  sites: z.array(
+    z.union([
+      z.object({ site: CompareSite, found: z.literal(true), price: z.number().positive(), url: z.string().url() }),
+      z.object({ site: CompareSite, found: z.literal(false) }),
+    ]),
+  ),
+});
+export type PriceCheck = z.infer<typeof PriceCheck>;
+
 /** One product exactly as the admin's GET /api/v1/storefront/catalogue sends it. */
 export const ApiProduct = z.object({
   sku: z.string(),
@@ -18,6 +31,11 @@ export const ApiProduct = z.object({
   left: z.number().nullable(),
   material: z.string().nullable(),
   is_new: z.boolean(),
+  /**
+   * "Compare prices": the same item on Amazon, Flipkart and Meesho, checked by
+   * hand in the admin. Missing (older admin) or null means not checked.
+   */
+  price_check: PriceCheck.nullable().optional(),
 });
 export type ApiProduct = z.infer<typeof ApiProduct>;
 

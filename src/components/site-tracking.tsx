@@ -101,6 +101,7 @@ export function SiteTracking() {
       "for-him": "for_him_view",
       jewellery: "jewellery_view",
       "return-gift-ideas": "ideas_view",
+      "how-we-check-prices": "price_method_view",
     };
     const name = views[a];
     if (name) track(name, a === "product" || a === "packs" || a === "shop" ? { [`viewed_${a}`]: decodeURIComponent(b) } : undefined);
