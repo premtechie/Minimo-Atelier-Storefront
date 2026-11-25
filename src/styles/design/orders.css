@@ -182,3 +182,7 @@ a.e-od-it:focus-visible { outline: 2px solid var(--fg, #3b2a23); outline-offset:
 @media (prefers-reduced-motion: reduce) {
   .e-od-placed *, .e-od-card, .e-od-tl li { animation-duration: 1ms !important; animation-delay: 0ms !important; }
 }
+.e-od-review { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin: 2px 0 0 68px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--mm-primary-200, #e6d8ce); background: #fff; color: var(--brand); font: 600 12.5px/1 var(--font-sans); text-decoration: none; }
+.e-od-review svg { color: #c8902f; }
+.e-od-review:hover { background: #f8f3ee; }
+.e-od-review:focus-visible { outline: 2px solid var(--fg, #3b2a23); outline-offset: 2px; }
