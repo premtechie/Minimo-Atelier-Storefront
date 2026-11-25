@@ -10,6 +10,7 @@ import { featured, pairsFor, stockCap } from "@/lib/store";
 import { SITE_URL } from "@/lib/whatsapp";
 import { abs, breadcrumbs, ldJson, pageMeta, STORE_ID } from "@/lib/seo";
 import type { Product } from "@/lib/types";
+import { compareFor, compareSnippet } from "@/lib/compare";
 
 export const revalidate = 60;
 
@@ -41,6 +42,11 @@ function seoTitle(p: Product) {
   return `${p.name}, ${inr(p.price)}: ${kind} in Hyderabad`;
 }
 function describe(p: Product) {
+  // Only a product that really is the lowest price we found says so in search results.
+  const vs = compareSnippet(compareFor(p.price, p.price_check));
+  return (vs ? `${vs} ` : "") + base(p);
+}
+function base(p: Product) {
   return isGift(p)
     ? `Buy ${p.name} as a birthday return gift for ${inr(p.price)} a piece. ${p.category}${p.material ? `, ${p.material}` : ""}. Mix it into a return-gift bag, gift-wrapped and name-tagged in 48 hours. Pickup or delivery in Hyderabad, courier across India.`
     : `Buy ${p.name} for ${inr(p.price)} at Minimo Atelier, Hyderabad. ${p.category}${p.material ? `, ${p.material}` : ""}. Gift-wrapped with a card, ready in 48 hours. Pickup or delivery in Hyderabad, courier across India.`;
@@ -107,6 +113,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
               eyebrow={p.category}
               badge={p.is_new ? "New arrival" : null}
               title={p.name}
+              compare={compareFor(p.price, p.price_check)}
               item={{ kind: "product", ref: p.sku, name: p.name, price: p.price, image: p.photoUrl ?? p.art, parts: [{ sku: p.sku, qty: 1 }], max: cap, bulk: gift, nameTag: false, mrp: p.mrp }}
             />
           </div>
