@@ -29,7 +29,7 @@ export default async function ForHer({ searchParams }: { searchParams: Promise<R
       eyebrow="For Her"
       title={["Little luxuries,", "for her"]}
       desc={`Earrings, hair claws, scrunchies, bracelets and bags.${from ? ` From ${inr(from)}.` : ""}`}
-      art="/art/cards/tile-for-her.webp"
+      art="/art/cards/hero-for-her.webp"
       items={items}
       groupOf={(p) => p.herGroup ?? "More"}
       bands={HER_BANDS}

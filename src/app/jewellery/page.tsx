@@ -36,7 +36,7 @@ export default async function Jewellery({ searchParams }: { searchParams: Promis
       eyebrow="Jewellery"
       title={["Pieces she'll wear,", "every day"]}
       desc={`Earrings, necklaces and chains, bracelets, rings and charms.${from ? ` From ${inr(from)}.` : ""}`}
-      art="/art/cards/tile-jewellery.webp"
+      art="/art/cards/hero-jewellery.webp"
       items={items}
       groupOf={groupOf}
       bands={HER_BANDS}
