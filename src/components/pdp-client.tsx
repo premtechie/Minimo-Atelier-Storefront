@@ -11,7 +11,7 @@ import type { Compare } from "@/lib/compare";
 import { SafeImg } from "./safe-img";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { addLine, type CartLine, type CartPart } from "@/lib/cart";
 import { inr } from "@/lib/format";
 import { BULK_RULES, bulkRate } from "@/lib/merch";
@@ -166,7 +166,7 @@ function Ticket({ q, set }: { q: number; set: (n: number) => void }) {
   );
 }
 
-export function BuyBox({ item, eyebrow, badge, title, compare }: { item: BuyItem; eyebrow: string; badge: string | null; title: string; compare?: Compare }) {
+export function BuyBox({ item, eyebrow, badge, title, compare, rating }: { item: BuyItem; eyebrow: string; badge: string | null; title: string; compare?: Compare; rating?: ReactNode }) {
   const { add, cart, setQty, ready } = useShop();
   const router = useRouter();
   const start = item.bulk ? Math.min(20, item.max) : 1;
@@ -213,6 +213,7 @@ export function BuyBox({ item, eyebrow, badge, title, compare }: { item: BuyItem
         <p className="d-eyebrow">{eyebrow}</p>
         {badge && <span className="d-pdp-badge">{badge}</span>}
         <h1 className="d-pdp-title">{title}</h1>
+        {rating}
       </div>
       <div className="d-pdp-group">
         <p className="d-pdp-pricerow">
