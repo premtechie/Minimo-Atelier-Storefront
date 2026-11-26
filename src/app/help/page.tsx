@@ -24,7 +24,7 @@ export default function Help() {
 
         <div className="h-tiles">
           <HelpTile href="/help/shipping" icon="truck" title="Delivery & pickup" line="Free store pickup, ready in 48 h" />
-          <HelpTile href="/help/shipping#paying" icon="tag" title="Paying" line="UPI once we confirm stock" />
+          <HelpTile href="/help/returns" icon="tag" title="Returns & refunds" line="Cancel free until it ships" />
           <HelpTile href="/orders" icon="box" title="Track an order" line="See where your order is" />
           <HelpTile href="/bulk-orders" icon="gift" title="Bulk & school orders" line="5–10% off on 15+ bags" />
         </div>
@@ -57,8 +57,23 @@ export default function Help() {
               </Link>
             </li>
             <li>
-              <Link href="/visit-our-store#contact">
-                Contact &amp; store hours <Icon name="chevR" size={16} />
+              <Link href="/help/returns">
+                Returns, refunds &amp; cancellations <Icon name="chevR" size={16} />
+              </Link>
+            </li>
+            <li>
+              <Link href="/help/terms">
+                Terms of use <Icon name="chevR" size={16} />
+              </Link>
+            </li>
+            <li>
+              <Link href="/help/privacy">
+                Privacy policy <Icon name="chevR" size={16} />
+              </Link>
+            </li>
+            <li>
+              <Link href="/help/contact">
+                Contact &amp; grievance officer <Icon name="chevR" size={16} />
               </Link>
             </li>
           </ul>

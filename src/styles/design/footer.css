@@ -26,5 +26,5 @@
 /* Match the design's text measure (34ch in its font build) and inline icons (the reset makes svg block). */
 .d-footer-brand p { max-width: 299px; }
 .d-footer-social svg { display: inline; vertical-align: baseline; }
-.d-footer-legal { display: inline-flex; gap: 16px; }
+.d-footer-legal { display: inline-flex; flex-wrap: wrap; gap: 8px 16px; }
 .d-footer-legal a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }

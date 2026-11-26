@@ -135,7 +135,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
               title={p.name}
               compare={compareFor(p.price, p.price_check)}
               rating={rated ? <RatingLink average={rated.average} count={rated.count} /> : null}
-              item={{ kind: "product", ref: p.sku, name: p.name, price: p.price, image: p.photoUrl ?? p.art, parts: [{ sku: p.sku, qty: 1 }], max: cap, bulk: gift, nameTag: false, mrp: p.mrp }}
+              item={{ kind: "product", ref: p.sku, name: p.name, price: p.price, image: p.photoUrl ?? p.art, parts: [{ sku: p.sku, qty: 1 }], max: cap, bulk: gift, nameTag: false, mrp: p.mrp, hamper: p.category_slug === "gift-hampers" }}
             />
           </div>
         </section>
