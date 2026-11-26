@@ -41,7 +41,7 @@ export function Grievance() {
       <span>
         <a href={`mailto:${g.email}`}>{g.email}</a> · <a href={`tel:${tel}`}>{g.phone}</a>
       </span>
-      <span>We acknowledge every complaint within 48 hours and resolve it within one month.</span>
+      <span>We acknowledge every complaint within 24 hours and resolve it within 48 hours.</span>
     </div>
   );
 }
