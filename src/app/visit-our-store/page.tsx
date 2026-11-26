@@ -63,7 +63,7 @@ export default function VisitStore() {
                 <h2>Free delivery to your flat</h2>
                 <p className="muted">Pick &ldquo;To your flat&rdquo; at checkout and add your tower and flat number.</p>
               </div>
-              <div className="e-stack">
+              <div className="e-stack" id="contact">
                 <span className="e-eyebrow">Talk to us</span>
                 <h2>WhatsApp is fastest</h2>
                 <p className="muted">Send a photo of your party theme and we&apos;ll suggest a mix.</p>

@@ -7,8 +7,8 @@ import { Icon } from "./icon";
 /* The approved design's footer (mm-footer, d- here; rules in styles/design/footer.css). */
 const COLS: { title: string; links: [string, string][] }[] = [
   { title: "Shop", links: [["Return gifts", "/shop/return-gifts"], ["Build your own", "/build"], ["Return gift ideas", "/return-gift-ideas"], ["For her", "/for-her"], ["Jewellery", "/jewellery"], ["For him", "/for-him"]] },
-  { title: "Help", links: [["Delivery & pickup", "/visit-our-store#store-info"], ["Bulk orders", "/bulk-orders"], ["Track order", "/orders"], ["Contact", "/visit-our-store"]] },
-  { title: "About", links: [["Visit our store", "/visit-our-store"], ["Our story", "/"]] },
+  { title: "Help", links: [["Help centre", "/help"], ["Shipping & pickup", "/help/shipping"], ["Track order", "/orders"], ["Bulk orders", "/bulk-orders"], ["Contact", "/visit-our-store#contact"]] },
+  { title: "About", links: [["Visit our store", "/visit-our-store"]] },
 ];
 
 export function Footer() {
@@ -44,6 +44,11 @@ export function Footer() {
       </div>
       <div className="d-footer-bottom">
         <span>© {new Date().getFullYear()} Minimo Atelier. All rights reserved.</span>
+        <span className="d-footer-legal">
+          <Link href="/help">Help</Link>
+          <Link href="/help/shipping">Shipping</Link>
+          <Link href="/visit-our-store#contact">Contact</Link>
+        </span>
       </div>
     </footer>
   );

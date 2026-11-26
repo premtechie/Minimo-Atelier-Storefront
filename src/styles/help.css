@@ -1,0 +1,53 @@
+/* ---------- help centre and policy pages ---------- */
+.h-page { max-width: 760px; padding-bottom: 64px; }
+.h-back { display: inline-flex; align-items: center; gap: 4px; margin-top: 18px; font-size: 14px; color: var(--fg-soft); text-decoration: none; min-height: 44px; }
+.h-head { padding: 24px 0 8px; }
+.h-back + .h-head { padding-top: 4px; }
+.h-head .m-eyebrow { margin: 0; }
+.h-h1 { margin: 8px 0 0; font: 400 clamp(30px, 4.4vw, 44px) / 1.08 var(--ff-display); color: var(--brand); letter-spacing: -0.015em; }
+.h-lede { margin: 10px 0 0; font-family: var(--ff-badge); font-size: 15px; line-height: 1.6; color: var(--fg-soft); }
+.h-h2 { margin: 0 0 12px; font: 500 20px / 1.25 var(--ff-display); color: var(--fg); }
+.h-sec { margin-top: 32px; }
+
+.h-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
+@media (min-width: 768px) { .h-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; } }
+.h-tile { display: flex; flex-direction: column; gap: 8px; min-height: 112px; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--fg); text-decoration: none; transition: border-color var(--t2) var(--ease), box-shadow var(--t2) var(--ease); }
+.h-tile:hover { border-color: var(--line-strong); box-shadow: var(--shadow-sm); }
+.h-tile:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.h-tile-ic { width: 36px; height: 36px; border-radius: 10px; background: var(--mm-primary-100, #f2eae4); color: var(--brand); display: inline-flex; align-items: center; justify-content: center; }
+.h-tile-t { font-size: 15px; }
+.h-tile-l { font-size: 12.5px; line-height: 1.4; color: var(--fg-muted); }
+
+.h-faq details { border-top: 1px solid var(--line); }
+.h-faq details:last-child { border-bottom: 1px solid var(--line); }
+.h-faq summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 52px; padding: 12px 0; font-size: 15px; cursor: pointer; }
+.h-faq summary::-webkit-details-marker { display: none; }
+.h-faq summary svg { flex: none; color: var(--fg-muted); transition: transform var(--t2) var(--ease); }
+.h-faq details[open] summary svg { transform: rotate(180deg); }
+.h-faq p { margin: 0 0 16px; font-family: var(--ff-badge); font-size: 14px; line-height: 1.6; color: var(--fg-soft); }
+
+.h-list { list-style: none; margin: 0; padding: 0; }
+.h-list a { display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-bottom: 1px solid var(--line); color: var(--fg); text-decoration: none; font-size: 15px; }
+.h-list li:first-child a { border-top: 1px solid var(--line); }
+.h-list svg { color: var(--fg-muted); }
+
+.h-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+.h-facts > div { display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 14px; background: var(--mm-primary-100, #f2eae4); }
+.h-facts strong { font: 600 20px / 1.1 var(--ff-display); color: var(--brand); }
+.h-facts span { font-size: 12px; line-height: 1.35; color: var(--fg-soft); }
+
+.h-ways { display: grid; gap: 10px; }
+@media (min-width: 768px) { .h-ways { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.h-way { padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+.h-way-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.h-way h3 { margin: 0; font-size: 15px; font-weight: 400; }
+.h-way p { margin: 8px 0 0; font-family: var(--ff-badge); font-size: 13.5px; line-height: 1.55; color: var(--fg-soft); }
+.h-chip { flex: none; padding: 4px 10px; border-radius: var(--r-pill); background: var(--mm-primary-50, #faf6f3); border: 1px solid var(--line); font-size: 12px; color: var(--fg-soft); white-space: nowrap; }
+.h-chip.is-free { background: #eaf2ec; border-color: #d3e5d8; color: #3d6a4b; }
+.h-prose p { margin: 0; font-family: var(--ff-badge); font-size: 14.5px; line-height: 1.65; color: var(--fg-soft); max-width: 62ch; }
+
+.h-talk { display: flex; align-items: center; gap: 12px; margin-top: 36px; padding: 14px 16px; border-radius: 16px; background: var(--brand); color: #fff; text-decoration: none; }
+.h-talk:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.h-talk-ic { width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.h-talk-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
+.h-talk-txt small { font-size: 12.5px; opacity: 0.85; }
