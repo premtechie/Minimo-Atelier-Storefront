@@ -377,4 +377,15 @@ export const SHOP = {
   openingHours: ["Mo-Fr 16:00-21:30", "Sa-Su 10:00-21:30"],
   mapsUrl: "https://www.google.com/maps/search/?api=1&query=Honer+Vivantis+Hyderabad",
   instagram: "https://www.instagram.com/minimo.atelier_/",
+  email: "hello@minimoatelier.in",
+  // The grievance officer the 2020 e-commerce rules ask shops to name.
+  grievance: { name: "", role: "", phone: "+91 73964 63639", email: "hello@minimoatelier.in" },
+};
+
+/** Return, refund and cancellation terms shown on the policy pages. */
+export const POLICY = {
+  returnDays: 7,
+  reportHours: 48,
+  refundStartDays: 2,
+  updated: "26 November 2026",
 };

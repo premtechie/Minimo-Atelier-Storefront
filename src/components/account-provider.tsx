@@ -484,7 +484,7 @@ function SignInSheet({ open, reason, config, onClose, onDone }: { open: boolean;
         </ul>
         {open && <SignInFlow key={round} config={config} onDone={onDone} handleLink />}
         <p className="a-legal">
-          By continuing you agree to our <Link href="/visit-our-store">Privacy Policy</Link>.
+          By continuing you agree to our <Link href="/help/terms">Terms</Link> and <Link href="/help/privacy">Privacy Policy</Link>.
         </p>
       </div>
     </>

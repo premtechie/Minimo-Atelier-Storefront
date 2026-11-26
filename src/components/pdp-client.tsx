@@ -166,7 +166,7 @@ function Ticket({ q, set }: { q: number; set: (n: number) => void }) {
   );
 }
 
-export function BuyBox({ item, eyebrow, badge, title, compare, rating }: { item: BuyItem; eyebrow: string; badge: string | null; title: string; compare?: Compare; rating?: ReactNode }) {
+export function BuyBox({ item, eyebrow, badge, title, rating, compare }: { item: BuyItem; eyebrow: string; badge: string | null; title: string; rating?: ReactNode; compare?: Compare }) {
   const { add, cart, setQty, ready } = useShop();
   const router = useRouter();
   const start = item.bulk ? Math.min(20, item.max) : 1;
