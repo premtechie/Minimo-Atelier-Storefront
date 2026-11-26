@@ -12,7 +12,7 @@ const DESC = "How Minimo Atelier orders reach you: free pickup inside Honer Viva
 export const metadata: Metadata = { title: { absolute: `${TITLE} · Minimo Atelier` }, description: DESC, ...pageMeta("/help/shipping", TITLE, DESC) };
 
 const WAYS: { title: string; cost: string; body: string }[] = [
-  { title: "Store pickup", cost: "Free", body: `Collect from our store, ${SHOP.where.toLowerCase()}. We message you on WhatsApp when it's packed.` },
+  { title: "Store pickup", cost: "Free", body: `Collect from our store ${SHOP.where.replace(/^Inside/, "inside")}. We message you on WhatsApp when it's packed.` },
   { title: "To your flat in Honer Vivantis", cost: "Free", body: "Pick “To your flat” at checkout and add your tower and flat number." },
   { title: "Across Hyderabad", cost: "Shown at checkout", body: "Nallagandla, Tellapur, Gachibowli, Kondapur, Kokapet, Narsingi and the rest of the city. Enter your PIN code to see the price and date." },
   { title: "Anywhere in India", cost: "Shown at checkout", body: "By courier. Enter your PIN code at checkout for the price and expected date." },
