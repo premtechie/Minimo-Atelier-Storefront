@@ -6,6 +6,7 @@ import { inr, packHref, productHref } from "@/lib/format";
 import type { Product, ResolvedPack } from "@/lib/types";
 import { Icon } from "./icon";
 import { useShop } from "./shop-provider";
+import { Stars } from "./stars";
 
 /** A product photo: the shop's own photo, else the clearly labelled sample picture, else a plain tile. */
 export function Photo({ p, sizes = "(min-width: 1024px) 25vw, 50vw", eager = false }: { p: Pick<Product, "photoUrl" | "art" | "name" | "category">; sizes?: string; eager?: boolean }) {
@@ -75,6 +76,12 @@ export function ProductCard({ p, unit = "per piece" }: { p: Product; unit?: stri
           {p.mrp && <s>{inr(p.mrp)}</s>}
           {unit && <small>{unit}</small>}
         </p>
+        {p.rating && p.rating.count > 0 && (
+          <p className="rv-card-rating">
+            <Stars value={p.rating.average} size={12} label={`Rated ${p.rating.average.toFixed(1)} out of 5`} />
+            <span>({p.rating.count})</span>
+          </p>
+        )}
       </Link>
       <Heart id={p.sku} name={p.name} />
     </article>

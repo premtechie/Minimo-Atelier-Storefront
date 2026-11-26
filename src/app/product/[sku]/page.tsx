@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/cards";
 import { InnerHeader } from "@/components/header";
-import { Care, Crumbs, Faq, Related, Reviews, Story, type CareItem } from "@/components/pdp";
+import { Suspense } from "react";
+import { Care, Crumbs, Faq, Related, Story, type CareItem } from "@/components/pdp";
 import { BuyBox, Gallery, Pairs, type GalleryImage } from "@/components/pdp-client";
+import { RatingLink, ReviewsSection } from "@/components/reviews";
+import { fetchReviews } from "@/lib/reviews-server";
 import { getStore } from "@/lib/catalogue";
 import { inr } from "@/lib/format";
 import { featured, pairsFor, stockCap } from "@/lib/store";
@@ -64,6 +67,9 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
   const more = related.length < 4 ? featured(store.live.filter((x) => x.sections.includes(sec) && x.sku !== p.sku && !related.includes(x))).slice(0, 4 - related.length) : [];
   const cap = stockCap(p);
   const url = `${SITE_URL}/product/${p.sku.toLowerCase()}`;
+  const reviews = await fetchReviews(p.sku);
+  const summary = reviews?.summary;
+  const rated = summary && summary.count > 0 ? summary : null;
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -85,6 +91,20 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
         availability: `https://schema.org/${p.availability === "out_of_stock" ? "OutOfStock" : p.availability === "few_left" ? "LimitedAvailability" : "InStock"}`,
         seller: { "@id": STORE_ID },
       },
+      // Only real, approved reviews from verified buyers.
+      ...(rated && reviews
+        ? {
+            aggregateRating: { "@type": "AggregateRating", ratingValue: rated.average, reviewCount: rated.count, bestRating: 5, worstRating: 1 },
+            review: reviews.reviews.slice(0, 5).map((r) => ({
+              "@type": "Review",
+              reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5, worstRating: 1 },
+              author: { "@type": "Person", name: r.name },
+              datePublished: r.date.slice(0, 10),
+              ...(r.title ? { name: r.title } : {}),
+              reviewBody: r.body,
+            })),
+          }
+        : {}),
     },
     breadcrumbs([["Home", "/"], [secName, secHref], [p.name, null]]),
   ];
@@ -114,6 +134,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
               badge={p.is_new ? "New arrival" : null}
               title={p.name}
               compare={compareFor(p.price, p.price_check)}
+              rating={rated ? <RatingLink average={rated.average} count={rated.count} /> : null}
               item={{ kind: "product", ref: p.sku, name: p.name, price: p.price, image: p.photoUrl ?? p.art, parts: [{ sku: p.sku, qty: 1 }], max: cap, bulk: gift, nameTag: false, mrp: p.mrp }}
             />
           </div>
@@ -131,7 +152,9 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
         />
         <Care id="h-care" eyebrow="Care" title="Keeps looking new" items={care} />
         <Faq />
-        <Reviews name={p.name} />
+        <Suspense>
+          <ReviewsSection sku={p.sku} name={p.name} initial={reviews} />
+        </Suspense>
         {pairs.length > 0 && images[0] && <Pairs self={{ name: p.name, price: p.price, img: images[0].src }} pairs={pairs} />}
         {related.length + more.length > 0 && (
           <Related title="You may also like">

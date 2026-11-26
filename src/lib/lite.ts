@@ -3,7 +3,7 @@ import { stockCap } from "./store";
 import { packHref, productHref } from "./format";
 
 /** The few fields the browser needs to price a cart or show a saved item. */
-export type LiteItem = { id: string; name: string; price: number; cap: number | null; image: string | null; href: string; unit: string | null };
+export type LiteItem = { id: string; name: string; price: number; mrp?: number | null; cap: number | null; image: string | null; href: string; unit: string | null };
 
 export function liteCatalogue(store: Store): LiteItem[] {
   return [
@@ -13,6 +13,8 @@ export function liteCatalogue(store: Store): LiteItem[] {
         id: p.sku,
         name: p.name,
         price: p.price,
+        // Only a real MRP above today's price; the cart shows the saving against it.
+        mrp: p.mrp && p.mrp > p.price ? p.mrp : null,
         cap: Number.isFinite(cap) ? cap : null,
         image: p.photoUrl ?? p.art,
         href: productHref(p.sku),

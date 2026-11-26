@@ -453,6 +453,8 @@ export function OrderDetail({ number, links = {} }: { number: string; links?: Re
   }
 
   const cancelled = o.status === "cancelled";
+  // A paid order's pieces can be reviewed on their product pages.
+  const canReview = o.status === "paid" || o.status === "packed" || o.status === "shipped";
   const pick = o.delivery === "pickup";
   const done = cur === st.length - 1 && !cancelled;
   const [label, cls] = status(o);
@@ -593,6 +595,11 @@ export function OrderDetail({ number, links = {} }: { number: string; links?: Re
                       </Link>
                     ) : (
                       <div className="e-od-it">{body}</div>
+                    )}
+                    {canReview && l.sku && (
+                      <Link className="e-od-review" href={`/product/${l.sku.toLowerCase()}?review=1`}>
+                        <Icon name="star" size={14} /> Write a review
+                      </Link>
                     )}
                   </li>
                 );
