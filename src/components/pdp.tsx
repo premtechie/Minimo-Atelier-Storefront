@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { SafeImg } from "./safe-img";
 import type { ReactNode } from "react";
-import { waLink } from "@/lib/whatsapp";
 import { Icon, type IconName } from "./icon";
+import { Stars } from "./stars";
+import { productHref } from "@/lib/format";
 
 /*
  * The product page's static sections, in the approved design's markup
@@ -131,21 +132,39 @@ export function Faq() {
   );
 }
 
-/** No reviews are shown until real orders bring them; nothing here is made up. */
-export function Reviews({ name }: { name: string }) {
+/**
+ * Reviews on a gift pack. Customers review the products inside a pack, each on
+ * its own page, so this lists what's inside with its real rating and links to
+ * that product's reviews. Nothing here is made up.
+ */
+export function PackReviews({ name, items }: { name: string; items: { sku: string; name: string; rating?: { average: number; count: number } | null }[] }) {
   return (
-    <section className="d-reviews" aria-labelledby="h-rev">
+    <section className="d-reviews" id="reviews" aria-labelledby="h-rev">
       <div className="d-reviews-inner">
-        <div className="d-reviews-empty">
-          <p className="d-eyebrow">Reviews</p>
-          <h2 className="d-reviews-empty-title" id="h-rev">
-            Be the first to review {name}
-          </h2>
-          <p className="d-rev-note">Reviews appear here only from real orders.</p>
-          <a className="d-reviews-write" data-wa-source="Write a review" href={waLink(`Hi Minimo, a review for ${name}: `)} target="_blank" rel="noopener">
-            <Icon name="pen" size={16} /> Write a review
-          </a>
-        </div>
+        <p className="d-eyebrow">Reviews</p>
+        <h2 className="rv-title" id="h-rev">
+          What buyers say about what&apos;s in {name}
+        </h2>
+        <p className="d-rev-note">Each item in this pack is reviewed on its own page. After your order arrives, you can review every item from its page or from My orders.</p>
+        <ul className="rv-pack-list">
+          {items.map((it) => (
+            <li key={it.sku}>
+              <Link className="rv-pack-row" href={`${productHref(it.sku)}#reviews`}>
+                <span className="rv-pack-name">{it.name}</span>
+                {it.rating && it.rating.count > 0 ? (
+                  <span className="rv-pack-score">
+                    <Stars value={it.rating.average} size={14} label={`Rated ${it.rating.average.toFixed(1)} out of 5`} />
+                    <span>
+                      {it.rating.average.toFixed(1)} ({it.rating.count})
+                    </span>
+                  </span>
+                ) : (
+                  <span className="rv-pack-score rv-pack-none">No reviews yet</span>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

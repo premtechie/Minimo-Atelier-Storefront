@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PackCard } from "@/components/cards";
 import { InnerHeader } from "@/components/header";
-import { Care, Crumbs, Faq, Related, Reviews, Story } from "@/components/pdp";
+import { Care, Crumbs, Faq, PackReviews, Related, Story } from "@/components/pdp";
 import { BuyBox, Gallery, Pairs, type GalleryImage } from "@/components/pdp-client";
 import { getStore } from "@/lib/catalogue";
 import { productHref } from "@/lib/format";
@@ -129,7 +129,7 @@ export default async function PackPage({ params }: { params: Promise<{ id: strin
           ]}
         />
         <Faq />
-        <Reviews name={k.name} />
+        <PackReviews name={k.name} items={k.parts.map(({ product: p }) => ({ sku: p.sku, name: p.name, rating: p.rating }))} />
         {pairs.length > 0 && <Pairs self={{ name: k.name, price: k.price, img: k.art }} pairs={pairs} />}
         <Related title="You may also like">
           {store.packs
