@@ -322,10 +322,10 @@ export function BuyBox({ item, eyebrow, badge, title, rating }: { item: BuyItem;
                   <Icon name="plus" size={16} />
                 </button>
               </div>
-              <Link className="d-liquid-btn d-liquid-btn--buy d-pdp-checkout is-flowing" href="/cart">
+              <Link className="d-liquid-btn d-liquid-btn--buy d-pdp-checkout is-flowing" href="/cart" aria-label={`Buy now: ${inCart.qty} in your cart`}>
                 <span className="d-pdp-dock-flow" />
                 <span className="d-liquid-btn-label">
-                  Checkout <Icon name="arrowR" size={16} />
+                  <Icon name="sparkle" size={16} /> Buy now
                 </span>
               </Link>
             </>
@@ -371,15 +371,25 @@ export function BuyBox({ item, eyebrow, badge, title, rating }: { item: BuyItem;
       </section>
       <PromiseTiles className="d-pdp-promise--main" />
 
-      {!soldOut && (
-        <button type="button" className={`d-liquid-btn d-pdp-dock d-float-cta ${float ? "show" : ""}`} tabIndex={float ? 0 : -1} aria-hidden={!float} onClick={addNow}>
-          <span className="d-liquid-btn-lens" />
-          <span className="d-liquid-btn-edge" />
-          <span className="d-liquid-btn-label">
-            <Icon name="bag" size={16} /> <span>{inr(now * q)} · Add to cart</span>
-          </span>
-        </button>
-      )}
+      {!soldOut &&
+        (inCart ? (
+          // Already in the cart: the pill takes the shopper to checkout instead of adding another.
+          <Link className={`d-liquid-btn d-pdp-dock d-float-cta ${float ? "show" : ""}`} tabIndex={float ? 0 : -1} aria-hidden={!float} href="/cart">
+            <span className="d-liquid-btn-lens" />
+            <span className="d-liquid-btn-edge" />
+            <span className="d-liquid-btn-label">
+              <Icon name="sparkle" size={16} /> <span>{inCart.qty} in cart · Buy now</span>
+            </span>
+          </Link>
+        ) : (
+          <button type="button" className={`d-liquid-btn d-pdp-dock d-float-cta ${float ? "show" : ""}`} tabIndex={float ? 0 : -1} aria-hidden={!float} onClick={addNow}>
+            <span className="d-liquid-btn-lens" />
+            <span className="d-liquid-btn-edge" />
+            <span className="d-liquid-btn-label">
+              <Icon name="bag" size={16} /> <span>{inr(now * q)} · Add to cart</span>
+            </span>
+          </button>
+        ))}
     </div>
   );
 }
@@ -388,9 +398,12 @@ export type Pair = { sku: string; name: string; price: number; img: string; href
 
 /** "Goes well with": tick the add-ons and add them in one go. */
 export function Pairs({ self, pairs }: { self: { name: string; price: number; img: string }; pairs: Pair[] }) {
-  const { cart, replace, toast } = useShop();
+  const { cart, replace, toast, ready } = useShop();
   const [on, setOn] = useState<Set<string>>(() => new Set(pairs.map((p) => p.sku)));
-  const picked = pairs.filter((p) => on.has(p.sku));
+  // Add-ons already in the cart are marked as such and never added a second time.
+  const held = new Set(ready ? cart.filter((l) => l.kind === "product").map((l) => l.ref) : []);
+  const picked = pairs.filter((p) => on.has(p.sku) && !held.has(p.sku));
+  const anyHeld = pairs.some((p) => held.has(p.sku));
   const total = picked.reduce((s, p) => s + p.price, 0);
   return (
     <section className="d-pdp-pairs" aria-labelledby="h-pairs">
@@ -416,6 +429,11 @@ export function Pairs({ self, pairs }: { self: { name: string; price: number; im
             </li>
             {pairs.map((x) => (
               <li className="d-set-row" key={x.sku}>
+                {held.has(x.sku) ? (
+                  <span className="d-set-lock" title="Already in your cart">
+                    <Icon name="check" size={12} />
+                  </span>
+                ) : (
                 <label className="d-set-check">
                   <input
                     type="checkbox"
@@ -429,11 +447,15 @@ export function Pairs({ self, pairs }: { self: { name: string; price: number; im
                     }}
                   />
                 </label>
+                )}
                 <Link className="d-set-link" href={x.href}>
                   <span className="d-set-thumb">
                     <SafeImg src={x.img} alt="" loading="lazy" />
                   </span>
-                  <span className="d-set-name">{x.name}</span>
+                  <span className="d-set-name">
+                    {x.name}
+                    {held.has(x.sku) && <span className="d-set-this"> · in your cart</span>}
+                  </span>
                 </Link>
                 <span className="d-set-price">{inr(x.price)}</span>
               </li>
@@ -446,6 +468,13 @@ export function Pairs({ self, pairs }: { self: { name: string; price: number; im
               </span>
               <strong>{inr(total)}</strong>
             </p>
+            {!picked.length && anyHeld ? (
+              <Link className="d-set-btn" href="/cart">
+                <span className="d-set-face">
+                  <Icon name="sparkle" size={14} /> Buy now
+                </span>
+              </Link>
+            ) : (
             <button
               type="button"
               className="d-set-btn"
@@ -464,6 +493,7 @@ export function Pairs({ self, pairs }: { self: { name: string; price: number; im
                 Add {picked.length} to cart
               </span>
             </button>
+            )}
           </div>
         </div>
       </div>
