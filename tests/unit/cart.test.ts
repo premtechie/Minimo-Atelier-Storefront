@@ -64,11 +64,15 @@ describe("mrpGross", () => {
   it("prices pieces with a real MRP at MRP, others at today's price", () => {
     expect(mrpGross([line("A", 2), line("B", 3)], lookup)).toBe(475 * 2 + 10 * 3);
   });
+  it("compares packs and builds only against their own price", () => {
+    const bag = { ...line("A", 20, 160), kind: "pack" as const };
+    expect(mrpGross([bag], lookup)).toBe(160 * 20);
+  });
   it("ignores an MRP below the price", () => {
     expect(mrpGross([line("C", 1)], lookup)).toBe(50);
   });
-  it("adds up a pack's parts at MRP", () => {
+  it("does not add up a pack's parts at MRP", () => {
     const pack = { key: "p", kind: "pack" as const, name: "Pack", price: 349, qty: 4, image: null, parts: [{ sku: "A", qty: 1 }, { sku: "B", qty: 1 }] };
-    expect(mrpGross([pack], lookup)).toBe((475 + 10) * 4);
+    expect(mrpGross([pack], lookup)).toBe(349 * 4);
   });
 });

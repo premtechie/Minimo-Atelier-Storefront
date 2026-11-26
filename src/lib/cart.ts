@@ -53,12 +53,17 @@ export function cartTotals(lines: CartLine[]) {
 }
 
 /**
- * What the lines would cost at MRP: each part at its MRP where it has a real one
+ * What the lines would cost at MRP: a product at its MRP where it has a real one
  * above today's price, else at today's price. Never below the cart's gross.
  */
 export function mrpGross(lines: CartLine[], lookup: PriceLookup) {
   let sum = 0;
   for (const l of lines) {
+    // Packs and builds compare against their own price, as their pages do.
+    if (l.kind !== "product") {
+      sum += l.price * l.qty;
+      continue;
+    }
     let unit = 0;
     for (const p of l.parts) {
       const hit = lookup(p.sku);
