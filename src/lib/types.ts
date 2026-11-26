@@ -18,6 +18,8 @@ export const ApiProduct = z.object({
   left: z.number().nullable(),
   material: z.string().nullable(),
   is_new: z.boolean(),
+  /** Published customer reviews: average stars and how many; null (or missing, from an older admin) when none. */
+  rating: z.object({ average: z.number(), count: z.number() }).nullable().optional(),
 });
 export type ApiProduct = z.infer<typeof ApiProduct>;
 
