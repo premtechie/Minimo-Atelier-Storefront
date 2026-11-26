@@ -171,3 +171,11 @@
 .rv-mine { display: flex; align-items: flex-start; gap: 8px; max-width: 460px; margin: 0; padding: 10px 14px; border-radius: 12px; background: #fdf6e8; border: 1px solid #f0dfb8; color: #7a5a1c; font-size: 13px; line-height: 1.45; text-align: left; }
 .rv-mine svg { flex-shrink: 0; margin-top: 1px; }
 .rv-mine.is-hidden { background: var(--mm-primary-50); border-color: var(--mm-primary-200); color: var(--fg-soft); }
+
+/* Gift pack: reviews live on the products inside */
+.rv-pack-list { list-style: none; margin: 20px 0 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--line); max-width: 640px; }
+.rv-pack-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 4px; border-bottom: 1px solid var(--line); color: var(--fg); text-decoration: none; }
+.rv-pack-row:hover .rv-pack-name { color: var(--brand); }
+.rv-pack-name { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; }
+.rv-pack-score { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--fg-muted); white-space: nowrap; }
+.rv-pack-none { font-style: normal; }
