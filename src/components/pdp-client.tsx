@@ -6,6 +6,8 @@
  * mm- classes are d- here; their rules live in styles/design/pdp.css).
  */
 
+import { ComparePrice } from "./compare-sheet";
+import type { Compare } from "@/lib/compare";
 import { SafeImg } from "./safe-img";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -164,7 +166,7 @@ function Ticket({ q, set }: { q: number; set: (n: number) => void }) {
   );
 }
 
-export function BuyBox({ item, eyebrow, badge, title, rating }: { item: BuyItem; eyebrow: string; badge: string | null; title: string; rating?: ReactNode }) {
+export function BuyBox({ item, eyebrow, badge, title, rating, compare }: { item: BuyItem; eyebrow: string; badge: string | null; title: string; rating?: ReactNode; compare?: Compare }) {
   const { add, cart, setQty, ready } = useShop();
   const router = useRouter();
   const start = item.bulk ? Math.min(20, item.max) : 1;
@@ -234,6 +236,7 @@ export function BuyBox({ item, eyebrow, badge, title, rating }: { item: BuyItem;
           )}
           <span className="d-pdp-per">{unit}</span>
         </p>
+        {compare && <ComparePrice compare={compare} sku={item.ref} name={item.name} soldOut={soldOut} inCart={!!inCart} onAdd={addNow} />}
         {item.bulk && !soldOut && (
           <div className="d-pdp-offers">
             <div className="d-ticket-rail">
