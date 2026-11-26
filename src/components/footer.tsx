@@ -7,7 +7,7 @@ import { Icon } from "./icon";
 /* The approved design's footer (mm-footer, d- here; rules in styles/design/footer.css). */
 const COLS: { title: string; links: [string, string][] }[] = [
   { title: "Shop", links: [["Return gifts", "/shop/return-gifts"], ["Build your own", "/build"], ["Return gift ideas", "/return-gift-ideas"], ["For her", "/for-her"], ["Jewellery", "/jewellery"], ["For him", "/for-him"]] },
-  { title: "Help", links: [["Help centre", "/help"], ["Shipping & pickup", "/help/shipping"], ["Track order", "/orders"], ["Bulk orders", "/bulk-orders"], ["Contact", "/visit-our-store#contact"]] },
+  { title: "Help", links: [["Help centre", "/help"], ["Shipping & pickup", "/help/shipping"], ["Track order", "/orders"], ["Returns & refunds", "/help/returns"], ["Bulk orders", "/bulk-orders"], ["Contact", "/help/contact"]] },
   { title: "About", links: [["Visit our store", "/visit-our-store"]] },
 ];
 
@@ -47,7 +47,10 @@ export function Footer() {
         <span className="d-footer-legal">
           <Link href="/help">Help</Link>
           <Link href="/help/shipping">Shipping</Link>
-          <Link href="/visit-our-store#contact">Contact</Link>
+          <Link href="/help/returns">Returns</Link>
+          <Link href="/help/terms">Terms</Link>
+          <Link href="/help/privacy">Privacy</Link>
+          <Link href="/help/contact">Contact</Link>
         </span>
       </div>
     </footer>

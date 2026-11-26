@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SHOP } from "@/lib/merch";
 import { Icon, type IconName } from "./icon";
 
 /** A topic tile on the Help centre: icon, title and one line. */
@@ -27,5 +28,31 @@ export function HelpTalk({ href }: { href: string }) {
       </span>
       <Icon name="chevR" size={18} />
     </a>
+  );
+}
+
+/** The grievance officer the 2020 e-commerce rules ask every shop to name. */
+export function Grievance() {
+  const g = SHOP.grievance;
+  const tel = g.phone.replace(/\s/g, "");
+  return (
+    <div className="h-officer">
+      <strong>{g.name ? `${g.name}${g.role ? `, ${g.role}` : ""}` : "Grievance officer"}</strong>
+      <span>
+        <a href={`mailto:${g.email}`}>{g.email}</a> · <a href={`tel:${tel}`}>{g.phone}</a>
+      </span>
+      <span>We acknowledge every complaint within 48 hours and resolve it within one month.</span>
+    </div>
+  );
+}
+
+/** "Policies" eyebrow, title and last-updated line shared by the policy pages. */
+export function PolicyHead({ title, updated }: { title: string; updated: string }) {
+  return (
+    <header className="h-head">
+      <p className="m-eyebrow">Policies</p>
+      <h1 className="h-h1">{title}</h1>
+      <p className="h-updated">Last updated {updated}</p>
+    </header>
   );
 }
