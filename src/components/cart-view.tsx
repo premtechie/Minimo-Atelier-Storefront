@@ -3,7 +3,7 @@
 import { SafeImg } from "./safe-img";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { addLine, cartTotals, couponSaving, type AppliedCoupon as Applied, lineRate, lineTotal, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
+import { addLine, cartTotals, couponSaving, mrpGross, type AppliedCoupon as Applied, lineRate, lineTotal, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
 import { newToken, rememberOrder, type Order, type SavedOrder } from "@/lib/orders";
 import { OrderPlaced } from "./orders-view";
 import { inr, plural } from "@/lib/format";
@@ -46,7 +46,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
   const lookup = useMemo<PriceLookup>(
     () => (sku) => {
       const x = byId.get(sku);
-      return x ? { price: x.price, cap: x.cap ?? Infinity, name: x.name } : undefined;
+      return x ? { price: x.price, cap: x.cap ?? Infinity, name: x.name, mrp: x.mrp } : undefined;
     },
     [byId],
   );
@@ -63,6 +63,9 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
   const gone = priced.filter((x) => x.today === null).map((x) => x.line);
   const short = shortages(live, lookup);
   const t = cartTotals(live);
+  // Saving against MRP (pieces with a real MRP) plus any bulk discount.
+  const atMrp = mrpGross(live, lookup);
+  const youSave = Math.max(0, atMrp - t.total);
   const [sheet, setSheet] = useState(false);
   const [placed, setPlaced] = useState<SavedOrder | null>(null);
   const [coupon, setCoupon] = useState("");
@@ -187,17 +190,19 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
                   <div className="d-sum-row">
                     <span>Subtotal</span>
                     <span>
-                      {t.discount > 0 && <s>{inr(t.gross)}</s>} {inr(t.total)}
+                      {youSave > 0 && <s>{inr(Math.max(atMrp, t.gross))}</s>} {inr(t.total)}
                     </span>
                   </div>
                   <div className="d-sum-row">
                     <span>Delivery</span>
                     <span>Free pickup</span>
                   </div>
-                  {t.discount > 0 && (
+                  {youSave > 0 && (
                     <div className="d-sum-row is-save">
-                      <span>You save</span>
-                      <span>{inr(t.discount)}</span>
+                      <span>
+                        <Icon name="tag" size={14} /> You save
+                      </span>
+                      <span>{inr(youSave)}</span>
                     </div>
                   )}
                   {saving > 0 && (
