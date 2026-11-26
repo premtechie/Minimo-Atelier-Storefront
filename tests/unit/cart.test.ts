@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addLine, cartTotals, couponSaving, mrpGross, needBySku, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
+import { addLine, cartTotals, couponSaving, freeDelivery, mrpGross, needBySku, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
 
 const shop: Record<string, { price: number; cap: number; name: string }> = {
   BAG: { price: 20, cap: 100, name: "Bag" },
@@ -70,5 +70,21 @@ describe("mrpGross", () => {
   it("adds up a pack's parts at MRP", () => {
     const pack = { key: "p", kind: "pack" as const, name: "Pack", price: 349, qty: 4, image: null, parts: [{ sku: "A", qty: 1 }, { sku: "B", qty: 1 }] };
     expect(mrpGross([pack], lookup)).toBe((475 + 10) * 4);
+  });
+});
+
+describe("freeDelivery", () => {
+  const gift = (price: number, extra: Partial<CartLine> = {}): CartLine => ({ key: "g" + price, kind: "product", name: "Necklace", price, qty: 1, image: null, parts: [{ sku: "NECK-1", qty: 1 }], bulk: false, ...extra });
+  it("unlocks at the threshold for single gifts only", () => {
+    expect(freeDelivery([gift(900)], 900, 1500)).toEqual({ ok: true, reached: false, left: 600 });
+    expect(freeDelivery([gift(1500)], 1500, 1500)).toEqual({ ok: true, reached: true, left: 0 });
+  });
+  it("never applies to return gifts, packs, builds or hampers", () => {
+    expect(freeDelivery([gift(2000), pack(20)], 3000, 1500).ok).toBe(false);
+    expect(freeDelivery([gift(2000, { bulk: true })], 2000, 1500).ok).toBe(false);
+    expect(freeDelivery([gift(2000, { bulk: undefined })], 2000, 1500).ok).toBe(false);
+    expect(freeDelivery([gift(2000, { hamper: true })], 2000, 1500).ok).toBe(false);
+    expect(freeDelivery([gift(2000, { kind: "build" })], 2000, 1500).left).toBeNull();
+    expect(freeDelivery([], 0, 1500).ok).toBe(false);
   });
 });

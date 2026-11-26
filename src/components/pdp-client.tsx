@@ -126,6 +126,8 @@ export type BuyItem = {
   nameTag: boolean;
   /** The admin's MRP, shown struck through when it is above today's price. */
   mrp?: number | null;
+  /** A gift hamper: never earns free delivery. */
+  hamper?: boolean;
 };
 
 const [[TOP_N, TOP_R], [LOW_N, LOW_R]] = BULK_RULES;
@@ -201,6 +203,7 @@ export function BuyBox({ item, eyebrow, badge, title, rating, compare }: { item:
     detail: item.detail,
     note,
     bulk: item.bulk,
+    ...(item.hamper ? { hamper: true } : {}),
   });
   const addNow = () => add(line());
   const unit = item.kind === "pack" ? "per guest" : "per piece";

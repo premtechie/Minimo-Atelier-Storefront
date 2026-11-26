@@ -3,7 +3,8 @@ import Link from "next/link";
 import { InnerHeader } from "@/components/header";
 import { HelpTalk } from "@/components/help-bits";
 import { Icon } from "@/components/icon";
-import { SHOP } from "@/lib/merch";
+import { FREE_DELIVERY_FROM, SHOP } from "@/lib/merch";
+import { inr } from "@/lib/format";
 import { breadcrumbs, ldJson, pageMeta } from "@/lib/seo";
 import { waLink } from "@/lib/whatsapp";
 
@@ -62,6 +63,13 @@ export default function Shipping() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="h-sec h-prose" aria-labelledby="h-free">
+          <h2 className="h-h2" id="h-free">
+            Free delivery
+          </h2>
+          <p>Delivery across Hyderabad and India is free when your cart comes to {inr(FREE_DELIVERY_FROM)} or more and holds only single gifts, like jewellery and gifts for her or him. It doesn&apos;t apply to return gifts, ready-made packs, return-gift bags you build, or hampers, which are priced by weight at checkout.</p>
         </section>
 
         <section className="h-sec h-prose" aria-labelledby="h-when">

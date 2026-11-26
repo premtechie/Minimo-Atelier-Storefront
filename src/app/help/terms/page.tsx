@@ -37,7 +37,7 @@ export default function Terms() {
           <ul>
             <li>All prices are in Indian rupees. No website price is above the product&apos;s MRP.</li>
             <li>Placing an order is a request. It is confirmed once we have checked stock and sent you a UPI payment link on WhatsApp.</li>
-            <li>Bulk discounts, set savings and coupons are shown in your cart and checked again when the order is placed.</li>
+            <li>Bulk discounts, free delivery and coupons are shown in your cart and checked again when the order is placed.</li>
             <li>Photos marked &ldquo;Sample picture&rdquo; show a typical pack; colours and pieces can vary with stock, and we tell you before packing if anything changes.</li>
             <li>If we can&apos;t fulfil an order, or a price is shown in error, we tell you and refund anything you have paid in full.</li>
           </ul>

@@ -27,6 +27,8 @@ export type CartLine = {
   ref?: string;
   /** False for gifts that don't take the return-gift bulk discount (a single lamp). */
   bulk?: boolean;
+  /** A gift hamper sold as one product: never earns free delivery. */
+  hamper?: boolean;
 };
 
 export type PriceLookup = (sku: string) => { price: number; cap: number; name: string; mrp?: number | null } | undefined;
@@ -71,6 +73,19 @@ export function mrpGross(lines: CartLine[], lookup: PriceLookup) {
     sum += Math.max(unit, l.price) * l.qty;
   }
   return sum;
+}
+
+/** A single gift that counts towards free delivery: not a return gift, pack, build or hamper. */
+export const freeDeliveryLine = (l: Pick<CartLine, "kind" | "bulk" | "hamper">) => l.kind === "product" && l.bulk === false && !l.hamper;
+
+/**
+ * Free courier delivery: only for carts made entirely of single gifts, once
+ * their total (after any bulk discount, before coupons) reaches `from`.
+ * `left` is what is still needed, or null when the cart can't earn it.
+ */
+export function freeDelivery(lines: CartLine[], total: number, from: number) {
+  const ok = lines.length > 0 && lines.every(freeDeliveryLine);
+  return { ok, reached: ok && total >= from, left: ok ? Math.max(0, from - total) : null };
 }
 
 /** Pieces of each SKU the whole cart needs, to check against stock. */
