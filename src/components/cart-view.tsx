@@ -3,7 +3,7 @@
 import { SafeImg } from "./safe-img";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { addLine, cartTotals, couponSaving, mrpGross, type AppliedCoupon as Applied, lineRate, lineTotal, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
+import { addLine, cartTotals, couponSaving, freeDelivery, mrpGross, type AppliedCoupon as Applied, lineRate, lineTotal, shortages, unitPrice, type CartLine, type PriceLookup } from "@/lib/cart";
 import { newToken, rememberOrder, type Order, type SavedOrder } from "@/lib/orders";
 import { OrderPlaced } from "./orders-view";
 import { inr, plural } from "@/lib/format";
@@ -14,6 +14,7 @@ import { Icon } from "./icon";
 import { etaText, fetchQuote, isPin, savePin, savedPin, shortDate, SPEED_NAME, type Quote, type Speed } from "@/lib/delivery";
 import { useShop } from "./shop-provider";
 import { track } from "@/lib/analytics";
+import { FREE_DELIVERY_FROM } from "@/lib/merch";
 
 // Called only from the Place order handler, never while rendering.
 const placedAt = () => Date.now();
@@ -66,6 +67,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
   // Saving against MRP (pieces with a real MRP) plus any bulk discount.
   const atMrp = mrpGross(live, lookup);
   const youSave = Math.max(0, atMrp - t.total);
+  const fd = freeDelivery(live, t.total, FREE_DELIVERY_FROM);
   const [sheet, setSheet] = useState(false);
   const [placed, setPlaced] = useState<SavedOrder | null>(null);
   const [coupon, setCoupon] = useState("");
@@ -186,6 +188,31 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
                 <h3 className="d-cart-section-title" id="h-sum">
                   Order summary
                 </h3>
+                {fd.ok && (
+                  <div className={fd.reached ? "d-unlock is-done" : "d-unlock"}>
+                    <span>
+                      {fd.reached ? (
+                        <>
+                          <Icon name="check" size={14} /> Free delivery in Hyderabad and across India
+                        </>
+                      ) : (
+                        <>
+                          Add <b>{inr(fd.left!)}</b> more for free delivery
+                        </>
+                      )}
+                    </span>
+                    <span
+                      className="d-unlock-bar"
+                      role="progressbar"
+                      aria-label="Progress to free delivery"
+                      aria-valuemin={0}
+                      aria-valuemax={FREE_DELIVERY_FROM}
+                      aria-valuenow={Math.min(FREE_DELIVERY_FROM, Math.round(t.total))}
+                    >
+                      <span style={{ width: `${Math.min(100, (t.total / FREE_DELIVERY_FROM) * 100)}%` }} />
+                    </span>
+                  </div>
+                )}
                 <div className="d-sum-rows">
                   <div className="d-sum-row">
                     <span>Subtotal</span>
@@ -195,7 +222,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
                   </div>
                   <div className="d-sum-row">
                     <span>Delivery</span>
-                    <span>Free pickup</span>
+                    <span>{fd.reached ? "Free" : "Free pickup"}</span>
                   </div>
                   {youSave > 0 && (
                     <div className="d-sum-row is-save">
@@ -323,6 +350,7 @@ export function CartView({ items, pairs }: { items: LiteItem[]; pairs: CartPair[
         open={sheet && live.length > 0}
         lines={live}
         itemsTotal={toPay}
+        freeShip={fd.reached}
         // Only a code the shop accepted, and only once the cart reaches its minimum.
         coupon={applied && saving > 0 ? applied.code : ""}
         giftNote={gift ? giftNote.trim() || "Make it a gift" : ""}
@@ -399,6 +427,7 @@ function Checkout({
   open,
   lines,
   itemsTotal,
+  freeShip,
   coupon,
   giftNote,
   onClose,
@@ -407,6 +436,8 @@ function Checkout({
   open: boolean;
   lines: CartLine[];
   itemsTotal: number;
+  /** The cart earns free courier delivery (the admin checks it again). */
+  freeShip: boolean;
   coupon: string;
   giftNote: string;
   onClose: () => void;
@@ -490,7 +521,7 @@ function Checkout({
   const options = priced ? [priced.standard, priced.express].filter((o) => o !== null) : [];
   const chosen = options.find((o) => o.speed === speed) ?? options[0] ?? null;
   const checking = pinOk && quote === null;
-  const ship = chosen?.price ?? 0;
+  const ship = freeShip ? 0 : (chosen?.price ?? 0);
   const when =
     pick || del === "flat"
       ? `Ready ${dayName(2)}`
@@ -655,7 +686,15 @@ function Checkout({
                             {shortDate(o.by) ? `, arrives by ${shortDate(o.by)}` : ""}
                           </small>
                         </span>
-                        <span className="d-ship-opt-price">{inr(o.price)}</span>
+                        <span className="d-ship-opt-price">
+                          {freeShip ? (
+                            <>
+                              <s>{inr(o.price)}</s> Free
+                            </>
+                          ) : (
+                            inr(o.price)
+                          )}
+                        </span>
                       </label>
                     ))
                   )}

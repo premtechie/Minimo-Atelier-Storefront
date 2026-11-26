@@ -384,8 +384,14 @@ export const SHOP = {
 
 /** Return, refund and cancellation terms shown on the policy pages. */
 export const POLICY = {
-  returnDays: 7,
   reportHours: 48,
-  refundStartDays: 2,
+  refundDays: "3–7",
   updated: "26 November 2026",
 };
+
+/**
+ * Free courier delivery (Hyderabad and India) once the cart reaches this many
+ * rupees, for single gifts only: never return gifts, packs or hampers. The
+ * admin applies the same rule when it prices the order.
+ */
+export const FREE_DELIVERY_FROM = 1500;

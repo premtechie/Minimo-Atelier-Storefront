@@ -328,3 +328,14 @@
 /* The design's sheet and overlay sit inside its phone frame; on the site they cover the viewport. */
 .e-overlay, .e-sheet { position: fixed; }
 .e-sheet { max-height: 86svh; }
+
+/* Free-delivery unlock bar at the top of the order summary. */
+.d-unlock { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; background: var(--mm-primary-50, #faf6f3); border: 1px solid var(--line); font-size: 13px; color: var(--fg-soft); }
+.d-unlock b { font-weight: 400; color: var(--brand); }
+.d-unlock > span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+.d-unlock-bar { display: block; height: 8px; border-radius: 999px; background: var(--mm-primary-100, #f2eae4); overflow: hidden; }
+.d-unlock-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--brand); transition: width 0.3s ease; }
+.d-unlock.is-done { background: #eaf2ec; border-color: #d3e5d8; color: #3d6a4b; }
+.d-unlock.is-done .d-unlock-bar > span { background: #3d6a4b; }
+@media (prefers-reduced-motion: reduce) { .d-unlock-bar > span { transition: none; } }
+.d-ship-opt-price s { font-weight: 400; color: var(--fg-muted); margin-right: 4px; }
